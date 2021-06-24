@@ -4,26 +4,16 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries;
 
-use Graphpinator\Value\ArgumentValue;
-use Graphpinator\Value\EnumValue;
-use Graphpinator\Value\InputedValue;
-use Graphpinator\Value\InputValue;
-use Graphpinator\Value\ListInputedValue;
-use Graphpinator\Value\ListValue;
-use Graphpinator\Value\NullInputedValue;
-use Graphpinator\Value\ScalarValue;
-use Graphpinator\Value\VariableValue;
-
 final class Serializer
 {
     use \Nette\SmartObject;
 
     public function serializeNormalizedRequest(\Graphpinator\Normalizer\NormalizedRequest $normalizedRequest) : string
     {
-        return $this->serializeOperationSet($normalizedRequest->getOperations());
+        return \Infinityloop\Utils\Json::fromNative($this->serializeOperationSet($normalizedRequest->getOperations()))->toString();
     }
 
-    public function serializeOperationSet(\Graphpinator\Normalizer\Operation\OperationSet $operationSet) : string
+    public function serializeOperationSet(\Graphpinator\Normalizer\Operation\OperationSet $operationSet) : array
     {
         $temp = [];
 
@@ -31,21 +21,21 @@ final class Serializer
             $temp[] = $this->serializeOperation($operation);
         }
 
-        return \Infinityloop\Utils\Json::fromNative($temp)->toString();
+        return $temp;
     }
 
-    public function serializeOperation(\Graphpinator\Normalizer\Operation\Operation $operation) : string
+    public function serializeOperation(\Graphpinator\Normalizer\Operation\Operation $operation) : array
     {
-        return \Infinityloop\Utils\Json::fromNative([
+        return [
             'type' => $operation->getType(),
             'name' => $operation->getName(),
             'fieldSet' => $this->serializeFieldSet($operation->getFields()),
             'variableSet' => $this->serializeVariableSet($operation->getVariables()),
             'directiveSet' => $this->serializeDirectiveSet($operation->getDirectives()),
-        ])->toString();
+        ];
     }
 
-    public function serializeDirectiveSet(\Graphpinator\Normalizer\Directive\DirectiveSet $set) : string
+    public function serializeDirectiveSet(\Graphpinator\Normalizer\Directive\DirectiveSet $set) : array
     {
         $temp = [];
 
@@ -53,18 +43,18 @@ final class Serializer
             $temp[] = $this->serializeDirective($directive);
         }
 
-        return \Infinityloop\Utils\Json::fromNative($temp)->toString();
+        return $temp;
     }
 
-    public function serializeDirective(\Graphpinator\Normalizer\Directive\Directive $directive) : string
+    public function serializeDirective(\Graphpinator\Normalizer\Directive\Directive $directive) : array
     {
-        return \Infinityloop\Utils\Json::fromNative([
+        return [
             'directive' => $directive->getDirective()->getName(),
             'arguments' => $this->serializeArgumentValueSet($directive->getArguments()),
-        ])->toString();
+        ];
     }
 
-    public function serializeVariableSet(\Graphpinator\Normalizer\Variable\VariableSet $set) : string
+    public function serializeVariableSet(\Graphpinator\Normalizer\Variable\VariableSet $set) : array
     {
         $temp = [];
 
@@ -72,18 +62,19 @@ final class Serializer
             $temp[] = $this->serializeVariable($variable);
         }
 
-        return \Infinityloop\Utils\Json::fromNative($temp)->toString();
+        return $temp;
     }
 
-    public function serializeVariable(\Graphpinator\Normalizer\Variable\Variable $variable) : string
+    public function serializeVariable(\Graphpinator\Normalizer\Variable\Variable $variable) : array
     {
-        return \Infinityloop\Utils\Json::fromNative([
+        return [
             'name' => $variable->getName(),
-            // TODO
-        ])->toString();
+            'type' => $this->serializeType($variable->getType()),
+            'defaultValue' => $this->serializeInputedValue($variable->getDefaultValue()),
+        ];
     }
 
-    public function serializeFieldSet(\Graphpinator\Normalizer\Field\FieldSet $fieldSet) : string
+    public function serializeFieldSet(\Graphpinator\Normalizer\Field\FieldSet $fieldSet) : array
     {
         $temp = [];
 
@@ -91,12 +82,12 @@ final class Serializer
             $temp[] = $this->serializeField($field);
         }
 
-        return \Infinityloop\Utils\Json::fromNative($temp)->toString();
+        return $temp;
     }
 
-    public function serializeField(\Graphpinator\Normalizer\Field\Field $field) : string
+    public function serializeField(\Graphpinator\Normalizer\Field\Field $field) : array
     {
-        return \Infinityloop\Utils\Json::fromNative([
+        return [
             'fieldName' => $field->getField()->getName(),
             'alias' => $field->getAlias(),
             'argumentValueSet' => $this->serializeArgumentValueSet($field->getArguments()),
@@ -105,10 +96,10 @@ final class Serializer
                 ? null
                 : $this->serializeFieldSet($field->getFields()),
             'typeCond' => $field->getTypeCondition()?->getName(),
-        ])->toString();
+        ];
     }
 
-    public function serializeArgumentValueSet(\Graphpinator\Value\ArgumentValueSet $argumentValueSet) : string
+    public function serializeArgumentValueSet(\Graphpinator\Value\ArgumentValueSet $argumentValueSet) : array
     {
         $temp = [];
 
@@ -116,27 +107,28 @@ final class Serializer
             $temp[] = $this->serializeargumentValue($argumentValue);
         }
 
-        return \Infinityloop\Utils\Json::fromNative($temp)->toString();
+        return $temp;
     }
 
-    public function serializeArgumentValue(\Graphpinator\Value\ArgumentValue $argumentValue) : string
+    public function serializeArgumentValue(\Graphpinator\Value\ArgumentValue $argumentValue) : array
     {
-        return \Infinityloop\Utils\Json::fromNative([
+        return [
             'argument' => $argumentValue->getArgument()->getName(),
             'value' => $this->serializeInputedValue($argumentValue->getValue()),
-        ])->toString();
+        ];
     }
 
-    public function serializeInputedValue(\Graphpinator\Value\InputedValue $inputedValue) : string
+    public function serializeInputedValue(\Graphpinator\Value\InputedValue $inputedValue) : array
     {
         $data = [
             'valueType' => $inputedValue::class,
             'type' => $this->serializeType($inputedValue->getType()),
         ];
+
         switch ($inputedValue::class) {
-            case NullInputedValue::class:
+            case \Graphpinator\Value\NullInputedValue::class:
                 break;
-            case ScalarValue::class:
+            case \Graphpinator\Value\ScalarValue::class:
                 $data['value'] = $inputedValue->getRawValue();
 
                 if ($inputedValue->hasResolverValue()) {
@@ -144,27 +136,27 @@ final class Serializer
                 }
 
                 break;
-            case EnumValue::class:
+            case \Graphpinator\Value\EnumValue::class:
                 $data['value'] = $inputedValue->getRawValue();
                 break;
-            case VariableValue::class:
+            case \Graphpinator\Value\VariableValue::class:
                 $data['variableName'] = $inputedValue->getVariable()->getName();
                 break;
-            case ListInputedValue::class:
+            case \Graphpinator\Value\ListInputedValue::class:
                 $inner = [];
 
                 foreach ($inputedValue as $item) {
-                    \assert($item instanceof InputedValue);
+                    \assert($item instanceof \Graphpinator\Value\InputedValue);
                     $inner[] = $this->serializeInputedValue($item);
                 }
 
                 $data['inner'] = $inner;
                 break;
-            case InputValue::class:
+            case \Graphpinator\Value\InputValue::class:
                 $inner = [];
 
                 foreach ($inputedValue as $key => $item) {
-                    \assert($item instanceof ArgumentValue);
+                    \assert($item instanceof \Graphpinator\Value\ArgumentValue);
                     $inner[$key] = $this->serializeArgumentValue($item);
                 }
 
@@ -172,6 +164,30 @@ final class Serializer
                 break;
         }
 
-        return \Infinityloop\Utils\Json::fromNative($data)->toString();
+        return $data;
+    }
+
+    public function serializeType(\Graphpinator\Typesystem\Contract\Type $type) : array
+    {
+        if ($type instanceof \Graphpinator\Typesystem\ListType) {
+            return [
+                'type' => 'list',
+                'inner' => $this->serializeType($type->getInnerType()),
+            ];
+        }
+
+        if ($type instanceof \Graphpinator\Typesystem\Contract\NamedType) {
+            return [
+                'type' => 'named',
+                'name' => $type->getNamedType()->getName(),
+            ];
+        }
+
+        if ($type instanceof \Graphpinator\Typesystem\NotNullType) {
+            return [
+                'type' => 'notnull',
+                'inner' => $this->serializeType($type->getInnerType()),
+            ];
+        }
     }
 }

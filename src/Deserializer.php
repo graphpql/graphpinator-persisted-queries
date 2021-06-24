@@ -4,25 +4,24 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries;
 
-use Graphpinator\Tokenizer\OperationType;
-use Graphpinator\Type\Type;
-
 final class Deserializer
 {
     use \Nette\SmartObject;
 
-    private \SplStack $stack;
+    private \SplStack $typeStack;
+    private \Graphpinator\Typesystem\Argument\ArgumentSet $currentArguments;
+    private \Graphpinator\Typesystem\Argument\ArgumentSet $currentVariableSet;
 
     public function __construct(
         private \Graphpinator\Typesystem\Schema $schema,
     )
     {
-
+        $this->typeStack = new \SplStack();
     }
 
     public function deserializeNormalizedRequest(string $data) : \Graphpinator\Normalizer\NormalizedRequest
     {
-        $operationSet = \Infinityloop\Utils\Json::fromString($data)->toNative();
+        $operationSet = (object) \Infinityloop\Utils\Json::fromString($data)->toNative();
 
         return new \Graphpinator\Normalizer\NormalizedRequest($this->deserializeOperationSet($operationSet));
     }
@@ -40,19 +39,23 @@ final class Deserializer
 
     public function deserializeOperation(\stdClass $operation) : \Graphpinator\Normalizer\Operation\Operation
     {
-        $rootType = $this->getRootObject($operation->rootObject);
-        $this->stack->push($rootType);
+        $rootType = match ($operation->type) {
+            \Graphpinator\Tokenizer\OperationType::QUERY => $this->schema->getQuery(),
+            \Graphpinator\Tokenizer\OperationType::MUTATION => $this->schema->getMutation(),
+            \Graphpinator\Tokenizer\OperationType::SUBSCRIPTION => $this->schema->getSubscription(),
+        };
+        $this->typeStack->push($rootType);
 
         $return = new \Graphpinator\Normalizer\Operation\Operation(
             $operation->type,
             $operation->name,
             $rootType,
-            $this->deserializeFieldSet($operation->fieldSet),
-            $this->deserializeVariableSet($operation->variableSet),
-            $this->deserializeDirectiveSet($operation->directiveSet),
+            $this->deserializeFieldSet((object) $operation->fieldSet),
+            $this->deserializeVariableSet((object) $operation->variableSet),
+            $this->deserializeDirectiveSet((object) $operation->directiveSet),
         );
 
-        $this->stack->pop();
+        $this->typeStack->pop();
 
         return $return;
     }
@@ -70,14 +73,25 @@ final class Deserializer
 
     public function deserializeField(\stdClass $field) : \Graphpinator\Normalizer\Field\Field
     {
-        return new \Graphpinator\Normalizer\Field\Field(
-            $this->getField($field->fieldName),
+        $fieldDef = $this->getField($field->fieldName);
+
+        $this->typeStack->push($fieldDef->getType()->getNamedType());
+        $this->currentArguments = $fieldDef->getArguments();
+
+        $return = new \Graphpinator\Normalizer\Field\Field(
+            $fieldDef,
             $field->alias,
-            $this->deserializeArgumentValueSet($field->argumentValueSet),
-            $this->deserializeDirectiveSet($field->directiveSet),
-            $this->deserializeFieldSet($field->children),
+            $this->deserializeArgumentValueSet((object) $field->argumentValueSet),
+            $this->deserializeDirectiveSet((object) $field->directiveSet),
+            $field->fieldSet === null
+                ? null
+                : $this->deserializeFieldSet((object) $field->fieldSet),
             $this->getTypeConditionable($field->typeCond),
         );
+
+        $this->typeStack->pop();
+
+        return $return;
     }
 
     private function deserializeDirectiveSet(\stdClass $directiveSet) : \Graphpinator\Normalizer\Directive\DirectiveSet
@@ -93,8 +107,11 @@ final class Deserializer
 
     private function deserializeDirective(\stdClass $directive) : \Graphpinator\Normalizer\Directive\Directive
     {
+        $directiveDef = $this->schema->getContainer()->getDirective($directive->directive);
+        $this->currentArguments = $directiveDef->getArguments();
+
         return new \Graphpinator\Normalizer\Directive\Directive(
-            $this->getDirective($directive->directive),
+            $directiveDef,
             $this->deserializeArgumentValueSet($directive->arguments),
         );
     }
@@ -112,11 +129,18 @@ final class Deserializer
 
     private function deserializeArgumentValue(\stdClass $argumentValue) : \Graphpinator\Value\ArgumentValue
     {
-        return new \Graphpinator\Value\ArgumentValue(
-            $this->getArgument($argumentValue->argument),
+        $argument = $this->currentArguments->offsetGet($argumentValue->argument);
+        $this->typeStack->push($argument->getType());
+
+        $return = new \Graphpinator\Value\ArgumentValue(
+            $argument,
             $this->deserializeInputedValue($argumentValue->value),
             true,
         );
+
+        $this->typeStack->pop();
+
+        return $return;
     }
 
     private function deserializeVariableSet(\stdClass $variableSet) : \Graphpinator\Normalizer\Variable\VariableSet
@@ -132,48 +156,92 @@ final class Deserializer
 
     private function deserializeVariable(\stdClass $variable) : \Graphpinator\Normalizer\Variable\Variable
     {
-        //TODO: Tady se bude asi vytahovat ze schématu?
+        return new \Graphpinator\Normalizer\Variable\Variable(
+            $variable->name,
+            $this->deserializeType($variable->type),
+            $this->deserializeInputedValue($variable->defaultValue),
+        );
     }
 
-    private function getField(string $fieldName) : \Graphpinator\Field\Field
+    private function getField(string $fieldName) : \Graphpinator\Typesystem\Field\Field
     {
-        $type = $this->stack->top();
-        \assert($type instanceof Type);
+        $type = $this->typeStack->top();
+        \assert($type instanceof \Graphpinator\Typesystem\Contract\Type);
 
-        return $type->getFields()[$fieldName];
+        return $type->accept(new \Graphpinator\Normalizer\GetFieldVisitor($fieldName));
     }
 
-    private function getTypeConditionable(?string $typeCond) : ?\Graphpinator\Type\Contract\TypeConditionable
+    private function getTypeConditionable(?string $typeCond) : ?\Graphpinator\Typesystem\Contract\TypeConditionable
     {
         if ($typeCond === null) {
             return null;
         }
 
-        //TODO: Najít typeConditionable ve schema?
+        $type = $this->typeStack->top();
+        \assert($type instanceof \Graphpinator\Field\Field);
+
+        return $type->getType()[$typeCond];
     }
 
-    private function getDirective(string $directiveName) : \Graphpinator\Directive\Contract\ExecutableDefinition
+    private function deserializeType(\stdClass $type) : \Graphpinator\Typesystem\Contract\Type
     {
-        //TODO: Najít ExecutableDefinition ve schema?
-    }
-
-    private function getArgument(string $argumentName) : \Graphpinator\Argument\Argument
-    {
-        //TODO: Najít Argument\Argument ve schema?
-    }
-
-    private function getRootObject(string $rootObjectName) : \Graphpinator\Type\Type
-    {
-        //TODO: Najít RootObject ve schema?
-        return match ($rootObjectName) {
-            OperationType::QUERY => $this->schema->getQuery(),
-            OperationType::MUTATION => $this->schema->getMutation(),
-            OperationType::SUBSCRIPTION => $this->schema->getSubscription(),
+        return match($type->type) {
+            'named' => $this->schema->getContainer()->getType($type->name),
+            'list' => new \Graphpinator\Type\ListType($this->deserializeType($type->inner)),
+            'notnull' => new \Graphpinator\Type\NotNullType($this->deserializeType($type->inner)),
         };
     }
 
     private function deserializeInputedValue(\stdClass $inputedValue) : \Graphpinator\Value\InputedValue
     {
-        //TODO: Zavolat s Peldou a zjistit jak se tohle deserializuje
+        switch ($inputedValue->valueType) {
+            case \Graphpinator\Value\NullInputedValue::class:
+                return new \Graphpinator\Value\NullInputedValue($this->deserializeType($inputedValue->type));
+            case \Graphpinator\Value\ScalarValue::class:
+                $scalarValue = new \Graphpinator\Value\ScalarValue(
+                    $this->deserializeType($inputedValue->type),
+                    $inputedValue->value,
+                    false,
+                );
+
+                if (\isset($inputedValue->resolverValue)) {
+                    $scalarValue->setResolverValue(\unserialize($inputedValue->resolverValue));
+                }
+
+                return $scalarValue;
+            case \Graphpinator\Value\EnumValue::class:
+                return new \Graphpinator\Value\EnumValue(
+                    $this->deserializeType($inputedValue->type),
+                    $inputedValue->value,
+                    false,
+                );
+            case \Graphpinator\Value\VariableValue::class:
+                return new \Graphpinator\Value\VariableValue(
+                    $this->deserializeType($inputedValue->type),
+                    $this->currentVariableSet->offsetGet($inputedValue->variableName),
+                );
+            case \Graphpinator\Value\ListInputedValue::class:
+                $inner = [];
+
+                foreach ($inputedValue->inner as $item) {
+                    $inner[] = $this->deserializeInputedValue($item);
+                }
+
+                return new \Graphpinator\Value\ListInputedValue(
+                    $this->deserializeType($inputedValue->type),
+                    $inner,
+                );
+            case \Graphpinator\Value\InputValue::class:
+                $inner = [];
+
+                foreach ($inputedValue->inner as $item) {
+                    $inner[] = $this->deserializeArgumentValue($item);
+                }
+
+                return new \Graphpinator\Value\InputValue(
+                    $this->deserializeType($inputedValue->type),
+                    (object) $inner,
+                );
+        }
     }
 }
