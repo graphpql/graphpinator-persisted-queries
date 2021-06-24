@@ -1,1 +1,15 @@
-# graphpinator-persisted-queries
+# GraPHPinator Persisted Queries [![PHP](https://github.com/infinityloop-dev/graphpinator-persisted-queries/workflows/PHP/badge.svg?branch=master)](https://github.com/infinityloop-dev/graphpinator-persisted-queries/actions?query=workflow%3APHP) [![codecov](https://codecov.io/gh/infinityloop-dev/graphpinator-persisted-queries/branch/master/graph/badge.svg)](https://codecov.io/gh/infinityloop-dev/graphpinator-persisted-queries)
+
+:zap::globe_with_meridians::zap: Module that enables caching of queries on server.
+
+## Introduction
+
+This Module allows GraPHPinator to cache queries on the server to reduce server load. 
+
+## Installation
+
+Install package using composer
+
+```composer require infinityloop-dev/graphpinator-persisted-queries```
+
+## How to use
