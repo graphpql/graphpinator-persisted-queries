@@ -1,6 +1,6 @@
 {
   "name": "infinityloop-dev/graphpinator-persisted-queries",
-  "description": "Module that enables caching of queries on server",
+  "description": "Module to persist validated query in cache and improve performace of repeating queries.",
   "homepage": "https://www.infinityloop.dev/",
   "type": "library",
   "license": ["MIT"],
