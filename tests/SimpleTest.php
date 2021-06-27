@@ -20,8 +20,62 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                 . '"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"field",'
                 . '"alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
                 . '"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"typeCond":null}],"typeCond":null}],'
-                . '"variableSet":[],"directiveSet":[]}]'
-            ]
+                . '"variableSet":[],"directiveSet":[]}]',
+                \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['field' => ['field' => ['scalar' => 1]]]]]),
+            ],
+            [
+                Json::fromNative((object) [
+                    'query' => '{ field { fieldArg(arg1: 456) } }',
+                ]),
+                2503903000,
+                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"fieldSet":[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1",'
+                . '"value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[],'
+                . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                \Infinityloop\Utils\Json::fromNative((object) [
+                    'data' => [
+                        'field' => [
+                            'fieldArg' => 1,
+                        ]
+                    ]
+                ]),
+            ],
+            [
+                Json::fromNative((object) [
+                    'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: false) } }',
+                ]),
+                4262924343,
+                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":'
+                . '[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue",'
+                . '"type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[{"directive":"include","arguments":[{"argument":"if","value":'
+                . '{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":'
+                . '[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":false}}]}],'
+                . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                \Infinityloop\Utils\Json::fromNative((object) [
+                    'data' => [
+                        'field' => [
+                            'fieldArg' => 1,
+                        ]
+                    ]
+                ]),
+            ],
+            [
+                Json::fromNative((object) [
+                    'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: true) } }',
+                ]),
+                84548630,
+                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":'
+                . '[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue",'
+                . '"type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[{"directive":"include","arguments":[{"argument":"if","value":'
+                . '{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":'
+                . '[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]}],'
+                . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                \Infinityloop\Utils\Json::fromNative((object) [
+                    'data' => [
+                        'field' => new \stdClass(),
+                    ]
+                ]),
+            ],
         ];
     }
 
@@ -31,7 +85,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
      */
-    public function testSimple(Json $request, int $crc32, string $expectedCache) : void
+    public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new \Graphpinator\SimpleContainer([$this->getQuery()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
@@ -48,10 +102,14 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
             ])
         );
 
-        $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
+        self::assertSame(
+            $expectedResult->toString(),
+            $result->toString(),
+        );
     }
 
     /**
@@ -60,7 +118,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
      */
-    public function testSimpleCache(Json $request, int $crc32, string $expectedCache) : void
+    public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new \Graphpinator\SimpleContainer([$this->getQuery()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
@@ -77,10 +135,14 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
             ])
         );
 
-        $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
+        self::assertSame(
+            $expectedResult->toString(),
+            $result->toString(),
+        );
     }
 
     private function getQuery() : \Graphpinator\Typesystem\Type
@@ -138,6 +200,16 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                             return 1;
                         },
                     ),
+                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                        'fieldArg',
+                        \Graphpinator\Container\Container::Int()->notNull(),
+                        static function (int $parent, int $arg1) : int {
+                            return 1;
+                        },
+                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
+                        \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::Int())
+                            ->setDefaultValue(123),
+                    ])),
                 ]);
             }
         };

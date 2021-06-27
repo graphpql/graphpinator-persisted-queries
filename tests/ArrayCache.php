@@ -23,6 +23,10 @@ final class ArrayCache implements \Psr\SimpleCache\CacheInterface
 
     public function set($key, $value, $ttl = null)
     {
+        if ($ttl !== 60 * 60) {
+            throw new \Exception('Invalid TTL');
+        }
+
         $this->cache[$key] = $value;
     }
 

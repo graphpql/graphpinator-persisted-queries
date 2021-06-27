@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries;
 
@@ -16,7 +16,6 @@ class PersistedQueriesModule implements \Graphpinator\Module\Module
         private int $ttl = 60 * 60,
     )
     {
-
     }
 
     public function processRequest(\Graphpinator\Request\Request $request) : \Graphpinator\Request\Request|\Graphpinator\Normalizer\NormalizedRequest
