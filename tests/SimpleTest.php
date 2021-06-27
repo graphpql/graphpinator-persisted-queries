@@ -36,8 +36,8 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'data' => [
                         'field' => [
                             'fieldArg' => 1,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]),
             ],
             [
@@ -45,18 +45,20 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: false) } }',
                 ]),
                 4262924343,
-                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":'
-                . '[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue",'
-                . '"type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[{"directive":"include","arguments":[{"argument":"if","value":'
-                . '{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":'
-                . '[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":false}}]}],'
-                . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"fieldSet":[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[{"directive":'
+                . '"include","arguments":[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named"'
+                . ',"name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":[{"argument":"if","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":false}}]}],"fieldSet":null,'
+                . '"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg' => 1,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]),
             ],
             [
@@ -65,22 +67,23 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                 ]),
                 84548630,
                 '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":'
-                . '[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue",'
-                . '"type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[{"directive":"include","arguments":[{"argument":"if","value":'
-                . '{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":'
-                . '[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]}],'
+                . '[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":'
+                . '[{"directive":"include","arguments":[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue",'
+                . '"type":{"type":"named","name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":[{"argument":"if","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]}],'
                 . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => new \stdClass(),
-                    ]
+                    ],
                 ]),
             ],
         ];
     }
 
     /**
-     * @param Json $request
+     * @param \Infinityloop\Utils\Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
@@ -99,7 +102,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     $schema,
                     new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
                 ),
-            ])
+            ]),
         );
 
         $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
@@ -113,7 +116,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param Json $request
+     * @param \Infinityloop\Utils\Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
@@ -122,6 +125,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
     {
         $container = new \Graphpinator\SimpleContainer([$this->getQuery()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
+        $cache = [];
         $cache[$crc32] = $expectedCache;
 
         $graphpinator = new \Graphpinator\Graphpinator(
@@ -132,7 +136,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     $schema,
                     new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
                 ),
-            ])
+            ]),
         );
 
         $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));

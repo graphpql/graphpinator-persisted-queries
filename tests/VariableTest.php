@@ -8,6 +8,50 @@ use \Infinityloop\Utils\Json;
 
 final class VariableTest extends \PHPUnit\Framework\TestCase
 {
+    public static function getSimpleEnum() : \Graphpinator\Typesystem\EnumType
+    {
+        return new class extends \Graphpinator\Typesystem\EnumType
+        {
+            public const A = 'A';
+            public const B = 'B';
+            public const C = 'C';
+            public const D = 'D';
+
+            protected const NAME = 'SimpleEnum';
+
+            public function __construct()
+            {
+                parent::__construct(self::fromConstants());
+            }
+        };
+    }
+
+    public static function getSimpleInput() : \Graphpinator\Typesystem\InputType
+    {
+        return new class extends \Graphpinator\Typesystem\InputType
+        {
+            protected const NAME = 'SimpleInput';
+
+            protected function getFieldDefinition() : \Graphpinator\Typesystem\Argument\ArgumentSet
+            {
+                return new \Graphpinator\Typesystem\Argument\ArgumentSet([
+                    new \Graphpinator\Typesystem\Argument\Argument(
+                        'name',
+                        \Graphpinator\Typesystem\Container::String()->notNull(),
+                    ),
+                    new \Graphpinator\Typesystem\Argument\Argument(
+                        'number',
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                    ),
+                    new \Graphpinator\Typesystem\Argument\Argument(
+                        'bool',
+                        \Graphpinator\Typesystem\Container::Boolean(),
+                    ),
+                ]);
+            }
+        };
+    }
+
     public function simpleDataProvider() : array
     {
         return [
@@ -20,13 +64,14 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"fieldSet":[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\VariableValue","type":{"type":"named","name":"Int"},"variableName":"var1"}}],"directiveSet":[],'
                 . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},'
-                . '"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":451}}],"directiveSet":[]}]',
+                . '"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":451}}],'
+                . '"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg' => 1,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]),
             ],
             [
@@ -38,13 +83,14 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"fieldSet":[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\VariableValue","type":{"type":"named","name":"Int"},"variableName":"var1"}}],"directiveSet":[],'
                 . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},'
-                . '"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":451}}],"directiveSet":[]}]',
+                . '"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":451}}],'
+                . '"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg' => 1,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]),
             ],
             [
@@ -52,7 +98,11 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName ($var1: Int = null) { field { fieldArg1 } }',
                 ]),
                 1527189668,
-                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"fieldArg1","alias":"fieldArg1","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},"defaultValue":{"valueType":"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[]}]',
+                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"fieldSet":[{"fieldName":"fieldArg1","alias":"fieldArg1","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"fieldSet":null,'
+                . '"typeCond":null}],"typeCond":null}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},"defaultValue":'
+                . '{"valueType":"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -66,7 +116,12 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName ($var1: String! = "opq") { field { fieldArg5(arg1: $var1) } }',
                 ]),
                 505400837,
-                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"fieldArg5","alias":"fieldArg5","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\VariableValue","type":{"type":"notnull","inner":{"type":"named","name":"String"}},"variableName":"var1"}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[{"name":"var1","type":{"type":"notnull","inner":{"type":"named","name":"String"}},"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"opq"}}],"directiveSet":[]}]',
+                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"fieldSet":[{"fieldName":"fieldArg5","alias":"fieldArg5","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\VariableValue","type":{"type":"notnull","inner":{"type":"named","name":"String"}},"variableName":'
+                . '"var1"}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[{"name":"var1","type":{"type":'
+                . '"notnull","inner":{"type":"named","name":"String"}},"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":'
+                . '{"type":"named","name":"String"},"value":"opq"}}],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -80,7 +135,10 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName { field { fieldArg5 } }',
                 ]),
                 2286478500,
-                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"fieldArg5","alias":"fieldArg5","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"abc"}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"fieldSet":[{"fieldName":"fieldArg5","alias":"fieldArg5","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"abc"}}],"directiveSet":[],"fieldSet":null,'
+                . '"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -94,7 +152,12 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName { field { fieldArg2(arg1: [100, 200]) } }',
                 ]),
                 465837730,
-                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"fieldArg2","alias":"fieldArg2","argumentValueSet":[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ListInputedValue","type":{"type":"list","inner":{"type":"named","name":"Int"}},"inner":[{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":100},{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":200}]}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[]'
+                . ',"fieldSet":[{"fieldName":"fieldArg2","alias":"fieldArg2","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\ListInputedValue","type":{"type":"list","inner":{"type":"named","name":"Int"}},"inner":[{"valueType"'
+                . ':"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":100},{"valueType":'
+                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":200}]}}],"directiveSet":[],"fieldSet":null,'
+                . '"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -108,7 +171,10 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName { field { fieldArg3(val: "B") } }',
                 ]),
                 63963003,
-                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"fieldArg3","alias":"fieldArg3","argumentValueSet":[{"argument":"val","value":{"valueType":"Graphpinator\\\Value\\\EnumValue","type":{"type":"named","name":"SimpleEnum"},"value":"B"}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[]'
+                . ',"fieldSet":[{"fieldName":"fieldArg3","alias":"fieldArg3","argumentValueSet":[{"argument":"val","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\EnumValue","type":{"type":"named","name":"SimpleEnum"},"value":"B"}}],"directiveSet":[],"fieldSet"'
+                . ':null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -122,7 +188,14 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName { field { fieldArg4(val: { name: "B", number: 999, bool: false }) } }',
                 ]),
                 4066991757,
-                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"fieldArg4","alias":"fieldArg4","argumentValueSet":[{"argument":"val","value":{"valueType":"Graphpinator\\\Value\\\InputValue","type":{"type":"named","name":"SimpleInput"},"inner":{"name":{"argument":"name","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"B"}},"number":{"argument":"number","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":999}},"bool":{"argument":"bool","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":false}}}}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"fieldSet":[{"fieldName":"fieldArg4","alias":"fieldArg4","argumentValueSet":[{"argument":"val","value":{"valueType":'
+                . '"Graphpinator\\\Value\\\InputValue","type":{"type":"named","name":"SimpleInput"},"inner":{"name":{"argument":"name",'
+                . '"value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"B"}},"number":'
+                . '{"argument":"number","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value"'
+                . ':999}},"bool":{"argument":"bool","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":'
+                . '"Boolean"},"value":false}}}}}],"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],'
+                . '"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -135,7 +208,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param Json $request
+     * @param \Infinityloop\Utils\Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
@@ -143,7 +216,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new \Graphpinator\SimpleContainer([
-            $this->getQuery(),
+            'Query' => $this->getQuery(),
             'SimpleEnum' => self::getSimpleEnum(),
             'SimpleInput' => self::getSimpleInput(),
         ], []);
@@ -158,7 +231,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     $schema,
                     new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
                 ),
-            ])
+            ]),
         );
 
         $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
@@ -172,7 +245,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param Json $request
+     * @param \Infinityloop\Utils\Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
@@ -180,11 +253,12 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new \Graphpinator\SimpleContainer([
-            $this->getQuery(),
+            'Query' => $this->getQuery(),
             'SimpleEnum' => self::getSimpleEnum(),
             'SimpleInput' => self::getSimpleInput(),
         ], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
+        $cache = [];
         $cache[$crc32] = $expectedCache;
 
         $graphpinator = new \Graphpinator\Graphpinator(
@@ -195,7 +269,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     $schema,
                     new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
                 ),
-            ])
+            ]),
         );
 
         $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
@@ -315,50 +389,6 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                         \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::String()->notNull())
                             ->setDefaultValue('abc'),
                     ])),
-                ]);
-            }
-        };
-    }
-
-    public static function getSimpleEnum() : \Graphpinator\Typesystem\EnumType
-    {
-        return new class extends \Graphpinator\Typesystem\EnumType
-        {
-            public const A = 'A';
-            public const B = 'B';
-            public const C = 'C';
-            public const D = 'D';
-
-            protected const NAME = 'SimpleEnum';
-
-            public function __construct()
-            {
-                parent::__construct(self::fromConstants());
-            }
-        };
-    }
-
-    public static function getSimpleInput() : \Graphpinator\Typesystem\InputType
-    {
-        return new class extends \Graphpinator\Typesystem\InputType
-        {
-            protected const NAME = 'SimpleInput';
-
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Argument\ArgumentSet
-            {
-                return new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                    new \Graphpinator\Typesystem\Argument\Argument(
-                        'name',
-                        \Graphpinator\Typesystem\Container::String()->notNull(),
-                    ),
-                    new \Graphpinator\Typesystem\Argument\Argument(
-                        'number',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
-                    ),
-                    new \Graphpinator\Typesystem\Argument\Argument(
-                        'bool',
-                        \Graphpinator\Typesystem\Container::Boolean(),
-                    ),
                 ]);
             }
         };
