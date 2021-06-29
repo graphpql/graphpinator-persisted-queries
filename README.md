@@ -4,7 +4,9 @@
 
 ## Introduction
 
-This Module allows GraPHPinator to cache queries on the server to reduce server load. 
+This Module allows GraPHPinator to cache queries on the server to reduce server load. This module aims to reduce GraphQL overhead in parsing and validation by caching and reusing known requests.
+
+> Please note that this module does not affect the speed of your resolver functions.
 
 ## Installation
 
@@ -36,7 +38,7 @@ $graphpinator = new \Graphpinator\Graphpinator(
 
 Simple benchmark (code in `bench` directory) shows approximatelly 80% reduction of GraphQL overhead.
 
-Benchmark runs the same query 10k times, with 5 warmup queries before. Cache in use is a simple implementation using Redis on localhost, connection is done using php-redis extension.
+Benchmark runs the same query 10k times, with 5 warmup queries before. Cache in use is a simple implementation using Redis on localhost, connection is done using php-redis extension. Opcache was disabled.
 
 | CPU model | Time WITHOUT module | Time WITH module |
 | --------- | ------------------- | ---------------- |
