@@ -36,9 +36,7 @@ final class ResolverValueTest extends \PHPUnit\Framework\TestCase
 
     public function testSimple() : void
     {
-        $container = new \Graphpinator\SimpleContainer([
-            'Query' => self::getQuery(),
-        ], []);
+        $container = new \Graphpinator\SimpleContainer([self::getQuery()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, self::getQuery());
         $cache = [];
         $module = new \Graphpinator\PersistedQueries\PersistedQueriesModule(

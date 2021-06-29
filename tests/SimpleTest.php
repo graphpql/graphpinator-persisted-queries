@@ -103,7 +103,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
      */
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer(['Query' => $this->getQuery(), 'Type1' => $this->getType()], []);
+        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), $this->getType()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
         $cache = [];
 
@@ -136,7 +136,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
      */
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer(['Query' => $this->getQuery(), 'Type1' => $this->getType()], []);
+        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), $this->getType()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
         $cache = [];
         $cache[$crc32] = $expectedCache;

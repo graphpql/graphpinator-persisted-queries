@@ -258,11 +258,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
      */
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([
-            'Query' => $this->getQuery(),
-            'SimpleEnum' => self::getSimpleEnum(),
-            'SimpleInput' => self::getSimpleInput(),
-        ], []);
+        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
         $cache = [];
 
@@ -295,11 +291,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
      */
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([
-            'Query' => $this->getQuery(),
-            'SimpleEnum' => self::getSimpleEnum(),
-            'SimpleInput' => self::getSimpleInput(),
-        ], []);
+        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
         $cache = [];
         $cache[$crc32] = $expectedCache;
