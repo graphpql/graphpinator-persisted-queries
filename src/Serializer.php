@@ -13,7 +13,7 @@ final class Serializer
         return \Infinityloop\Utils\Json::fromNative($this->serializeOperationSet($normalizedRequest->getOperations()))->toString();
     }
 
-    public function serializeOperationSet(\Graphpinator\Normalizer\Operation\OperationSet $operationSet) : array
+    private function serializeOperationSet(\Graphpinator\Normalizer\Operation\OperationSet $operationSet) : array
     {
         $temp = [];
 
@@ -24,7 +24,7 @@ final class Serializer
         return $temp;
     }
 
-    public function serializeOperation(\Graphpinator\Normalizer\Operation\Operation $operation) : array
+    private function serializeOperation(\Graphpinator\Normalizer\Operation\Operation $operation) : array
     {
         return [
             'type' => $operation->getType(),
@@ -35,7 +35,7 @@ final class Serializer
         ];
     }
 
-    public function serializeDirectiveSet(\Graphpinator\Normalizer\Directive\DirectiveSet $set) : array
+    private function serializeDirectiveSet(\Graphpinator\Normalizer\Directive\DirectiveSet $set) : array
     {
         $temp = [];
 
@@ -46,7 +46,7 @@ final class Serializer
         return $temp;
     }
 
-    public function serializeDirective(\Graphpinator\Normalizer\Directive\Directive $directive) : array
+    private function serializeDirective(\Graphpinator\Normalizer\Directive\Directive $directive) : array
     {
         return [
             'directive' => $directive->getDirective()->getName(),
@@ -54,7 +54,7 @@ final class Serializer
         ];
     }
 
-    public function serializeVariableSet(\Graphpinator\Normalizer\Variable\VariableSet $set) : array
+    private function serializeVariableSet(\Graphpinator\Normalizer\Variable\VariableSet $set) : array
     {
         $temp = [];
 
@@ -65,16 +65,18 @@ final class Serializer
         return $temp;
     }
 
-    public function serializeVariable(\Graphpinator\Normalizer\Variable\Variable $variable) : array
+    private function serializeVariable(\Graphpinator\Normalizer\Variable\Variable $variable) : array
     {
         return [
             'name' => $variable->getName(),
             'type' => $this->serializeType($variable->getType()),
-            'defaultValue' => $this->serializeInputedValue($variable->getDefaultValue()),
+            'defaultValue' => $variable->getDefaultValue() === null
+                ? null
+                : $this->serializeInputedValue($variable->getDefaultValue()),
         ];
     }
 
-    public function serializeFieldSet(\Graphpinator\Normalizer\Field\FieldSet $fieldSet) : array
+    private function serializeFieldSet(\Graphpinator\Normalizer\Field\FieldSet $fieldSet) : array
     {
         $temp = [];
 
@@ -85,7 +87,7 @@ final class Serializer
         return $temp;
     }
 
-    public function serializeField(\Graphpinator\Normalizer\Field\Field $field) : array
+    private function serializeField(\Graphpinator\Normalizer\Field\Field $field) : array
     {
         return [
             'fieldName' => $field->getField()->getName(),
@@ -99,7 +101,7 @@ final class Serializer
         ];
     }
 
-    public function serializeArgumentValueSet(\Graphpinator\Value\ArgumentValueSet $argumentValueSet) : array
+    private function serializeArgumentValueSet(\Graphpinator\Value\ArgumentValueSet $argumentValueSet) : array
     {
         $temp = [];
 
@@ -110,7 +112,7 @@ final class Serializer
         return $temp;
     }
 
-    public function serializeArgumentValue(\Graphpinator\Value\ArgumentValue $argumentValue) : array
+    private function serializeArgumentValue(\Graphpinator\Value\ArgumentValue $argumentValue) : array
     {
         return [
             'argument' => $argumentValue->getArgument()->getName(),
@@ -118,7 +120,7 @@ final class Serializer
         ];
     }
 
-    public function serializeInputedValue(\Graphpinator\Value\InputedValue $inputedValue) : array
+    private function serializeInputedValue(\Graphpinator\Value\InputedValue $inputedValue) : array
     {
         $data = [
             'valueType' => $inputedValue::class,
@@ -138,9 +140,11 @@ final class Serializer
                 break;
             case \Graphpinator\Value\EnumValue::class:
                 $data['value'] = $inputedValue->getRawValue();
+
                 break;
             case \Graphpinator\Value\VariableValue::class:
                 $data['variableName'] = $inputedValue->getVariable()->getName();
+
                 break;
             case \Graphpinator\Value\ListInputedValue::class:
                 $inner = [];
@@ -151,6 +155,7 @@ final class Serializer
                 }
 
                 $data['inner'] = $inner;
+
                 break;
             case \Graphpinator\Value\InputValue::class:
                 $inner = [];
@@ -161,33 +166,28 @@ final class Serializer
                 }
 
                 $data['inner'] = $inner;
+
                 break;
         }
 
         return $data;
     }
 
-    public function serializeType(\Graphpinator\Typesystem\Contract\Type $type) : array
+    private function serializeType(\Graphpinator\Typesystem\Contract\Type $type) : array
     {
-        if ($type instanceof \Graphpinator\Typesystem\ListType) {
-            return [
+        return match ($type::class) {
+            \Graphpinator\Typesystem\ListType::class => [
                 'type' => 'list',
                 'inner' => $this->serializeType($type->getInnerType()),
-            ];
-        }
-
-        if ($type instanceof \Graphpinator\Typesystem\Contract\NamedType) {
-            return [
-                'type' => 'named',
-                'name' => $type->getNamedType()->getName(),
-            ];
-        }
-
-        if ($type instanceof \Graphpinator\Typesystem\NotNullType) {
-            return [
+            ],
+            \Graphpinator\Typesystem\NotNullType::class => [
                 'type' => 'notnull',
                 'inner' => $this->serializeType($type->getInnerType()),
-            ];
-        }
+            ],
+            default => [
+                'type' => 'named',
+                'name' => $type->getNamedType()->getName(),
+            ],
+        };
     }
 }

@@ -10,7 +10,7 @@ final class Deserializer
 
     private \SplStack $typeStack;
     private \Graphpinator\Typesystem\Argument\ArgumentSet $currentArguments;
-    private \Graphpinator\Typesystem\Argument\ArgumentSet $currentVariableSet;
+    private \Graphpinator\Normalizer\Variable\VariableSet $currentVariableSet;
 
     public function __construct(
         private \Graphpinator\Typesystem\Schema $schema,
@@ -26,18 +26,19 @@ final class Deserializer
         return new \Graphpinator\Normalizer\NormalizedRequest($this->deserializeOperationSet($operationSet));
     }
 
-    public function deserializeOperationSet(\stdClass $operationSet) : \Graphpinator\Normalizer\Operation\OperationSet
+    private function deserializeOperationSet(\stdClass $operationSet) : \Graphpinator\Normalizer\Operation\OperationSet
     {
         $temp = [];
 
         foreach ($operationSet as $operation) {
+            \assert($this->typeStack->isEmpty());
             $temp[] = $this->deserializeOperation($operation);
         }
 
         return new \Graphpinator\Normalizer\Operation\OperationSet($temp);
     }
 
-    public function deserializeOperation(\stdClass $operation) : \Graphpinator\Normalizer\Operation\Operation
+    private function deserializeOperation(\stdClass $operation) : \Graphpinator\Normalizer\Operation\Operation
     {
         $rootType = match ($operation->type) {
             \Graphpinator\Tokenizer\OperationType::QUERY => $this->schema->getQuery(),
@@ -45,13 +46,14 @@ final class Deserializer
             \Graphpinator\Tokenizer\OperationType::SUBSCRIPTION => $this->schema->getSubscription(),
         };
         $this->typeStack->push($rootType);
+        $variables = $this->deserializeVariableSet((object) $operation->variableSet);
 
         $return = new \Graphpinator\Normalizer\Operation\Operation(
             $operation->type,
             $operation->name,
             $rootType,
             $this->deserializeFieldSet((object) $operation->fieldSet),
-            $this->deserializeVariableSet((object) $operation->variableSet),
+            $variables,
             $this->deserializeDirectiveSet((object) $operation->directiveSet),
         );
 
@@ -60,7 +62,7 @@ final class Deserializer
         return $return;
     }
 
-    public function deserializeFieldSet(\stdClass $fieldSet) : \Graphpinator\Normalizer\Field\FieldSet
+    private function deserializeFieldSet(\stdClass $fieldSet) : \Graphpinator\Normalizer\Field\FieldSet
     {
         $temp = [];
 
@@ -71,7 +73,7 @@ final class Deserializer
         return new \Graphpinator\Normalizer\Field\FieldSet($temp);
     }
 
-    public function deserializeField(\stdClass $field) : \Graphpinator\Normalizer\Field\Field
+    private function deserializeField(\stdClass $field) : \Graphpinator\Normalizer\Field\Field
     {
         $fieldDef = $this->getField($field->fieldName);
 
@@ -112,7 +114,7 @@ final class Deserializer
 
         return new \Graphpinator\Normalizer\Directive\Directive(
             $directiveDef,
-            $this->deserializeArgumentValueSet($directive->arguments),
+            $this->deserializeArgumentValueSet((object) $directive->arguments),
         );
     }
 
@@ -151,7 +153,10 @@ final class Deserializer
             $temp[] = $this->deserializeVariable($variable);
         }
 
-        return new \Graphpinator\Normalizer\Variable\VariableSet($temp);
+        $set = new \Graphpinator\Normalizer\Variable\VariableSet($temp);
+        $this->currentVariableSet = $set;
+
+        return $set;
     }
 
     private function deserializeVariable(\stdClass $variable) : \Graphpinator\Normalizer\Variable\Variable
@@ -159,7 +164,9 @@ final class Deserializer
         return new \Graphpinator\Normalizer\Variable\Variable(
             $variable->name,
             $this->deserializeType($variable->type),
-            $this->deserializeInputedValue($variable->defaultValue),
+            $variable->defaultValue === null
+                ? null
+                : $this->deserializeInputedValue($variable->defaultValue),
         );
     }
 
@@ -178,70 +185,85 @@ final class Deserializer
         }
 
         $type = $this->typeStack->top();
-        \assert($type instanceof \Graphpinator\Field\Field);
+        \assert($type instanceof \Graphpinator\Typesystem\Contract\Type);
 
-        return $type->getType()[$typeCond];
+        return $this->schema->getContainer()->getType($typeCond);
     }
 
     private function deserializeType(\stdClass $type) : \Graphpinator\Typesystem\Contract\Type
     {
-        return match($type->type) {
+        return match ($type->type) {
             'named' => $this->schema->getContainer()->getType($type->name),
             'list' => new \Graphpinator\Type\ListType($this->deserializeType($type->inner)),
             'notnull' => new \Graphpinator\Type\NotNullType($this->deserializeType($type->inner)),
         };
     }
 
+    private function deserializeScalarValue(\stdClass $inputedValue) : \Graphpinator\Value\ScalarValue
+    {
+        $scalarValue = new \Graphpinator\Value\ScalarValue(
+            $this->deserializeType($inputedValue->type),
+            $inputedValue->value,
+            false,
+        );
+
+        if (isset($inputedValue->resolverValue)) {
+            $scalarValue->setResolverValue(\unserialize($inputedValue->resolverValue));
+        }
+
+        return $scalarValue;
+    }
+
+    private function deserializeListInputedValue(\stdClass $inputedValue) : \Graphpinator\Value\ListInputedValue
+    {
+        $inner = [];
+
+        foreach ($inputedValue->inner as $item) {
+            $inner[] = $this->deserializeInputedValue($item);
+        }
+
+        return new \Graphpinator\Value\ListInputedValue(
+            $this->deserializeType($inputedValue->type),
+            $inner,
+        );
+    }
+
+    private function deserializeInputValue(\stdClass $inputedValue) : \Graphpinator\Value\InputValue
+    {
+        $inner = [];
+        $type = $this->deserializeType($inputedValue->type);
+        \assert($type instanceof \Graphpinator\Typesystem\InputType);
+        $currentArgumentsBackup = $this->currentArguments;
+        $this->currentArguments = $type->getArguments();
+
+        foreach ($inputedValue->inner as $key => $item) {
+            $inner[$key] = $this->deserializeArgumentValue($item);
+        }
+
+        $this->currentArguments = $currentArgumentsBackup;
+
+        return new \Graphpinator\Value\InputValue(
+            $type,
+            (object) $inner,
+        );
+    }
+
     private function deserializeInputedValue(\stdClass $inputedValue) : \Graphpinator\Value\InputedValue
     {
-        switch ($inputedValue->valueType) {
-            case \Graphpinator\Value\NullInputedValue::class:
-                return new \Graphpinator\Value\NullInputedValue($this->deserializeType($inputedValue->type));
-            case \Graphpinator\Value\ScalarValue::class:
-                $scalarValue = new \Graphpinator\Value\ScalarValue(
-                    $this->deserializeType($inputedValue->type),
-                    $inputedValue->value,
-                    false,
-                );
-
-                if (\isset($inputedValue->resolverValue)) {
-                    $scalarValue->setResolverValue(\unserialize($inputedValue->resolverValue));
-                }
-
-                return $scalarValue;
-            case \Graphpinator\Value\EnumValue::class:
-                return new \Graphpinator\Value\EnumValue(
-                    $this->deserializeType($inputedValue->type),
-                    $inputedValue->value,
-                    false,
-                );
-            case \Graphpinator\Value\VariableValue::class:
-                return new \Graphpinator\Value\VariableValue(
-                    $this->deserializeType($inputedValue->type),
-                    $this->currentVariableSet->offsetGet($inputedValue->variableName),
-                );
-            case \Graphpinator\Value\ListInputedValue::class:
-                $inner = [];
-
-                foreach ($inputedValue->inner as $item) {
-                    $inner[] = $this->deserializeInputedValue($item);
-                }
-
-                return new \Graphpinator\Value\ListInputedValue(
-                    $this->deserializeType($inputedValue->type),
-                    $inner,
-                );
-            case \Graphpinator\Value\InputValue::class:
-                $inner = [];
-
-                foreach ($inputedValue->inner as $item) {
-                    $inner[] = $this->deserializeArgumentValue($item);
-                }
-
-                return new \Graphpinator\Value\InputValue(
-                    $this->deserializeType($inputedValue->type),
-                    (object) $inner,
-                );
-        }
+        return match ($inputedValue->valueType) {
+            \Graphpinator\Value\NullInputedValue::class => new \Graphpinator\Value\NullInputedValue($this->deserializeType($inputedValue->type)),
+            \Graphpinator\Value\ScalarValue::class => $this->deserializeScalarValue($inputedValue),
+            \Graphpinator\Value\EnumValue::class => new \Graphpinator\Value\EnumValue(
+                $this->deserializeType($inputedValue->type),
+                $inputedValue->value,
+                false,
+            ),
+            \Graphpinator\Value\VariableValue::class => new \Graphpinator\Value\VariableValue(
+                $this->deserializeType($inputedValue->type),
+                $this->currentVariableSet->offsetGet($inputedValue->variableName),
+            ),
+            \Graphpinator\Value\ListInputedValue::class => $this->deserializeListInputedValue($inputedValue),
+            \Graphpinator\Value\InputValue::class => $this->deserializeInputValue($inputedValue),
+        };
     }
 }

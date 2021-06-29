@@ -7,12 +7,12 @@ namespace Graphpinator\PersistedQueries\Tests;
 final class ArrayCache implements \Psr\SimpleCache\CacheInterface
 {
     public function __construct(
-        private array &$cache = []
+        private array &$cache = [],
     )
     {
     }
 
-    public function get($key, $default = null)
+    public function get($key, $default = null) : mixed
     {
         if (!isset($this->cache[$key])) {
             return $default;
@@ -21,36 +21,36 @@ final class ArrayCache implements \Psr\SimpleCache\CacheInterface
         return $this->cache[$key];
     }
 
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = null) : void
     {
         $this->cache[$key] = $value;
     }
 
-    public function delete($key)
+    public function delete($key) : void
     {
         if (isset($this->cache[$key])) {
             unset($this->cache[$key]);
         }
     }
 
-    public function clear()
+    public function clear() : void
     {
         $this->cache = [];
     }
 
-    public function getMultiple($keys, $default = null)
+    public function getMultiple($keys, $default = null) : void
     {
     }
 
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple($values, $ttl = null) : void
     {
     }
 
-    public function deleteMultiple($keys)
+    public function deleteMultiple($keys) : void
     {
     }
 
-    public function has($key)
+    public function has($key) : bool
     {
         return isset($this->cache[$key]);
     }
