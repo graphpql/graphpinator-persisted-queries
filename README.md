@@ -43,4 +43,4 @@ Benchmark runs the same query 10k times, with 5 warmup queries before. Cache in 
 | CPU model | Time WITHOUT module | Time WITH module |
 | --------- | ------------------- | ---------------- |
 | Ryzen 5900X | ~12.44 s | ~2.16 s |
-| Ryzen 5600X | ~24.83 s | ~4.69 s |
+| Ryzen 5600X (using VMware) | ~24.83 s | ~4.69 s |
