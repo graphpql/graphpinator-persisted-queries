@@ -79,6 +79,19 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
             ],
+            [
+                Json::fromNative((object) [
+                    'query' => 'query queryName { ... namedFragment }
+                    fragment namedFragment on Query { field { field { field { scalar } } } }',
+                ]),
+                1205484868,
+                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"field",'
+                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
+                . '"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"typeCond":null}],"typeCond":"Query"}],"variableSet":[],'
+                . '"directiveSet":[]}]',
+                \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['field' => ['field' => ['scalar' => 1]]]]]),
+            ],
         ];
     }
 
@@ -90,7 +103,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
      */
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([$this->getQuery()], []);
+        $container = new \Graphpinator\SimpleContainer(['Query' => $this->getQuery(), 'Type1' => $this->getType()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
         $cache = [];
 
@@ -123,7 +136,7 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
      */
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([$this->getQuery()], []);
+        $container = new \Graphpinator\SimpleContainer(['Query' => $this->getQuery(), 'Type1' => $this->getType()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
         $cache = [];
         $cache[$crc32] = $expectedCache;
@@ -152,6 +165,8 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
     private function getQuery() : \Graphpinator\Typesystem\Type
     {
         return new class ($this->getType()) extends \Graphpinator\Typesystem\Type {
+            protected const NAME = 'Query';
+
             public function __construct(
                 private \Graphpinator\Typesystem\Type $type,
             )
@@ -182,6 +197,8 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
     private function getType() : \Graphpinator\Typesystem\Type
     {
         return new class extends \Graphpinator\Typesystem\Type {
+            protected const NAME = 'Type1';
+
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;

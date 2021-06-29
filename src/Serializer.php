@@ -175,25 +175,19 @@ final class Serializer
 
     private function serializeType(\Graphpinator\Typesystem\Contract\Type $type) : array
     {
-        if ($type instanceof \Graphpinator\Typesystem\ListType) {
-            return [
+        return match ($type::class) {
+            \Graphpinator\Typesystem\ListType::class => [
                 'type' => 'list',
                 'inner' => $this->serializeType($type->getInnerType()),
-            ];
-        }
-
-        if ($type instanceof \Graphpinator\Typesystem\Contract\NamedType) {
-            return [
-                'type' => 'named',
-                'name' => $type->getNamedType()->getName(),
-            ];
-        }
-
-        if ($type instanceof \Graphpinator\Typesystem\NotNullType) {
-            return [
+            ],
+            \Graphpinator\Typesystem\NotNullType::class => [
                 'type' => 'notnull',
                 'inner' => $this->serializeType($type->getInnerType()),
-            ];
-        }
+            ],
+            default => [
+                'type' => 'named',
+                'name' => $type->getNamedType()->getName(),
+            ],
+        };
     }
 }
