@@ -3,7 +3,7 @@
 declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries\Bench;
-require 'vendor/autoload.php';
+require '../vendor/autoload.php';
 
 /**
  * This benchmark requires php-redis extension.
