@@ -32,7 +32,7 @@ $graphpinator = new \Graphpinator\Graphpinator(
 
 3. You are all set, queries are automatically cached in specified storage.
 
-## Performance inprovements
+## Performance improvements
 
 Simple benchmark (code in `bench` directory) shows approximatelly 80% reduction of GraphQL overhead.
 
