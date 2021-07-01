@@ -194,8 +194,8 @@ final class Deserializer
     {
         return match ($type->type) {
             'named' => $this->schema->getContainer()->getType($type->name),
-            'list' => new \Graphpinator\Type\ListType($this->deserializeType($type->inner)),
-            'notnull' => new \Graphpinator\Type\NotNullType($this->deserializeType($type->inner)),
+            'list' => new \Graphpinator\Typesystem\ListType($this->deserializeType($type->inner)),
+            'notnull' => new \Graphpinator\Typesystem\NotNullType($this->deserializeType($type->inner)),
         };
     }
 
