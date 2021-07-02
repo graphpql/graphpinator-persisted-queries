@@ -75,7 +75,12 @@ final class Deserializer
 
     private function deserializeField(\stdClass $field) : \Graphpinator\Normalizer\Field\Field
     {
-        $fieldDef = $this->getField($field->fieldName);
+        $typeCond = $this->getTypeConditionable($field->typeCond);
+        $type = $typeCond instanceof \Graphpinator\Typesystem\Contract\TypeConditionable
+            ? $typeCond
+            : $this->typeStack->top();
+        \assert($type instanceof \Graphpinator\Typesystem\Contract\Type);
+        $fieldDef = $type->accept(new \Graphpinator\Normalizer\GetFieldVisitor($field->fieldName));
 
         $this->typeStack->push($fieldDef->getType()->getNamedType());
         $this->currentArguments = $fieldDef->getArguments();
@@ -88,7 +93,7 @@ final class Deserializer
             $field->fieldSet === null
                 ? null
                 : $this->deserializeFieldSet((object) $field->fieldSet),
-            $this->getTypeConditionable($field->typeCond),
+            $typeCond,
         );
 
         $this->typeStack->pop();
@@ -168,14 +173,6 @@ final class Deserializer
                 ? null
                 : $this->deserializeInputedValue($variable->defaultValue),
         );
-    }
-
-    private function getField(string $fieldName) : \Graphpinator\Typesystem\Field\Field
-    {
-        $type = $this->typeStack->top();
-        \assert($type instanceof \Graphpinator\Typesystem\Contract\Type);
-
-        return $type->accept(new \Graphpinator\Normalizer\GetFieldVisitor($fieldName));
     }
 
     private function getTypeConditionable(?string $typeCond) : ?\Graphpinator\Typesystem\Contract\TypeConditionable
