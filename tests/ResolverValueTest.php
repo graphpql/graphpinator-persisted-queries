@@ -50,16 +50,16 @@ final class ResolverValueTest extends \PHPUnit\Framework\TestCase
 
         $this->assertArrayHasKey(3834652180, $cache);
         $this->assertEquals(
-            '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[{"argument":"arg"'
+            '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[{"argument":"arg"'
             . ',"value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"abc","resolverValue":"O:8:'
             . '\"DateTime\":3:{s:4:\"date\";s:26:\"2021-06-29 00:00:00.000000\";s:13:\"timezone_type\";i:3;s:8:\"timezone\";s:3:\"UTC\";}"}}],'
-            . '"directiveSet":[],"fieldSet":null,"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+            . '"directiveSet":[],"selectionSet":null}],"variableSet":[],"directiveSet":[]}]',
             $cache[3834652180],
         );
 
         $result = $module->processRequest($request);
         $this->assertInstanceOf(\Graphpinator\Normalizer\NormalizedRequest::class, $result);
-        $argumentValue = $result->getOperations()->getFirst()->getFields()->getFirst()->getArguments()->getFirst()->getValue();
+        $argumentValue = $result->getOperations()->getFirst()->getSelections()->getFirst()->getArguments()->getFirst()->getValue();
         $this->assertTrue($argumentValue->hasResolverValue());
         $this->assertInstanceOf(\DateTime::class, $argumentValue->getResolverValue());
         $this->assertEquals(new \DateTime('2021-06-29'), $argumentValue->getResolverValue());
@@ -77,8 +77,8 @@ final class ResolverValueTest extends \PHPUnit\Framework\TestCase
                     'query',
                     null,
                     self::getQuery(),
-                    new \Graphpinator\Normalizer\Field\FieldSet([
-                        new \Graphpinator\Normalizer\Field\Field(
+                    new \Graphpinator\Normalizer\Selection\SelectionSet([
+                        new \Graphpinator\Normalizer\Selection\Field(
                             self::getQuery()->getFields()['field'],
                             'field',
                             new \Graphpinator\Value\ArgumentValueSet([

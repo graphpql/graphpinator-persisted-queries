@@ -16,10 +16,10 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { field { field { scalar } } } }',
                 ]),
                 1920335920,
-                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"field",'
-                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
-                . '"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"typeCond":null}],"typeCond":null}],'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field",'
+                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
+                . '"directiveSet":[],"selectionSet":null}]}]}]}],'
                 . '"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['field' => ['field' => ['scalar' => 1]]]]]),
             ],
@@ -28,10 +28,10 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { fieldArg(arg1: 456) } }',
                 ]),
                 2503903000,
-                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"fieldSet":[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1",'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1",'
                 . '"value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[],'
-                . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                . '"selectionSet":null}]}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -45,13 +45,13 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: false) } }',
                 ]),
                 4262924343,
-                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"fieldSet":[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[{"directive":'
                 . '"include","arguments":[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named"'
                 . ',"name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":[{"argument":"if","value":{"valueType":'
-                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":false}}]}],"fieldSet":null,'
-                . '"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":false}}]}],"selectionSet":null'
+                . '}]}],"variableSet":[],"directiveSet":[]}]',
 
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
@@ -66,13 +66,13 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: true) } }',
                 ]),
                 84548630,
-                '[{"type":"query","name":null,"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":'
-                . '[{"fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":'
+                . '[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":'
                 . '[{"directive":"include","arguments":[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue",'
                 . '"type":{"type":"named","name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":[{"argument":"if","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":true}}]}],'
-                . '"fieldSet":null,"typeCond":null}],"typeCond":null}],"variableSet":[],"directiveSet":[]}]',
+                . '"selectionSet":null}]}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
                     'data' => [
                         'field' => new \stdClass(),
@@ -85,10 +85,10 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     fragment namedFragment on Query { field { field { field { scalar } } } }',
                 ]),
                 1205484868,
-                '[{"type":"query","name":"queryName","fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"fieldSet":[{"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"field",'
-                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"fieldSet":[{"fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
-                . '"directiveSet":[],"fieldSet":null,"typeCond":null}],"typeCond":null}],"typeCond":null}],"typeCond":"Query"}],"variableSet":[],'
+                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\FragmentSpread","fragmentName":"namedFragment","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field",'
+                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
+                . '"directiveSet":[],"selectionSet":null}]}]}]}],"directiveSet":[],"typeCond":{"type":"named","name":"Query"}}],"variableSet":[],'
                 . '"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['field' => ['field' => ['scalar' => 1]]]]]),
             ],
