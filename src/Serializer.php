@@ -29,7 +29,7 @@ final class Serializer
         return [
             'type' => $operation->getType(),
             'name' => $operation->getName(),
-            'fieldSet' => $this->serializeFieldSet($operation->getFields()),
+            'selectionSet' => $this->serializeSelectionSet($operation->getSelections()),
             'variableSet' => $this->serializeVariableSet($operation->getVariables()),
             'directiveSet' => $this->serializeDirectiveSet($operation->getDirectives()),
         ];
@@ -76,28 +76,55 @@ final class Serializer
         ];
     }
 
-    private function serializeFieldSet(\Graphpinator\Normalizer\Field\FieldSet $fieldSet) : array
+    private function serializeSelectionSet(\Graphpinator\Normalizer\Selection\SelectionSet $selectionSet) : array
     {
         $temp = [];
 
-        foreach ($fieldSet as $field) {
-            $temp[] = $this->serializeField($field);
+        foreach ($selectionSet as $selection) {
+            $temp[] = match ($selection::class) {
+                \Graphpinator\Normalizer\Selection\Field::class => $this->serializeField($selection),
+                \Graphpinator\Normalizer\Selection\FragmentSpread::class => $this->serializeFragmentSpread($selection),
+                \Graphpinator\Normalizer\Selection\InlineFragment::class => $this->serializeInlineFragment($selection),
+            };
         }
 
         return $temp;
     }
 
-    private function serializeField(\Graphpinator\Normalizer\Field\Field $field) : array
+    private function serializeField(\Graphpinator\Normalizer\Selection\Field $field) : array
     {
         return [
+            'selectionType' => \Graphpinator\Normalizer\Selection\Field::class,
             'fieldName' => $field->getField()->getName(),
-            'alias' => $field->getAlias(),
+            'alias' => $field->getOutputName(),
             'argumentValueSet' => $this->serializeArgumentValueSet($field->getArguments()),
             'directiveSet' => $this->serializeDirectiveSet($field->getDirectives()),
-            'fieldSet' => $field->getFields() === null
+            'selectionSet' => $field->getSelections() === null
                 ? null
-                : $this->serializeFieldSet($field->getFields()),
-            'typeCond' => $field->getTypeCondition()?->getName(),
+                : $this->serializeSelectionSet($field->getSelections()),
+        ];
+    }
+
+    private function serializeFragmentSpread(\Graphpinator\Normalizer\Selection\FragmentSpread $fragmentSpread) : array
+    {
+        return [
+            'selectionType' => \Graphpinator\Normalizer\Selection\FragmentSpread::class,
+            'fragmentName' => $fragmentSpread->getName(),
+            'selectionSet' => $this->serializeSelectionSet($fragmentSpread->getSelections()),
+            'directiveSet' => $this->serializeDirectiveSet($fragmentSpread->getDirectives()),
+            'typeCond' => $this->serializeType($fragmentSpread->getTypeCondition()),
+        ];
+    }
+
+    private function serializeInlineFragment(\Graphpinator\Normalizer\Selection\InlineFragment $inlineFragment) : array
+    {
+        return [
+            'selectionType' => \Graphpinator\Normalizer\Selection\InlineFragment::class,
+            'selectionSet' => $this->serializeSelectionSet($inlineFragment->getSelections()),
+            'directiveSet' => $this->serializeDirectiveSet($inlineFragment->getDirectives()),
+            'typeCond' => $inlineFragment->getTypeCondition() instanceof \Graphpinator\Typesystem\Contract\TypeConditionable
+                ? $this->serializeType($inlineFragment->getTypeCondition())
+                : null,
         ];
     }
 

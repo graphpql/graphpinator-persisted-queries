@@ -47,13 +47,6 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
             {
                 return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
-                        'typeField',
-                        $this,
-                        static function () : int {
-                            return 1;
-                        },
-                    ),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'scalar',
                         \Graphpinator\Container\Container::Int()->notNull(),
                         static function () : int {
@@ -61,7 +54,7 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
                         },
                     ),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
-                        'simpleListing',
+                        'flex',
                         FragmentTest::getFlexSimple(),
                         static function () : int {
                             return 1;
@@ -80,7 +73,7 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
             public function createResolvedValue($rawValue) : \Graphpinator\Value\TypeIntermediateValue
             {
                 return new \Graphpinator\Value\TypeIntermediateValue(
-                    \Graphpinator\Container\Container::Int(),
+                    FragmentTest::getFlexType(),
                     123,
                 );
             }
@@ -88,10 +81,7 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
             protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\FieldSet
             {
                 return new \Graphpinator\Typesystem\Field\FieldSet([
-                    \Graphpinator\Typesystem\Field\Field::create(
-                        'flex',
-                        FragmentTest::getFlexType(),
-                    ),
+                    new \Graphpinator\Typesystem\Field\Field('mandatory', \Graphpinator\Typesystem\Container::Int()),
                 ]);
             }
         };
@@ -103,6 +93,11 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
         {
             protected const NAME = 'FlexType';
 
+            public function __construct()
+            {
+                parent::__construct(new \Graphpinator\Typesystem\InterfaceSet([FragmentTest::getFlexSimple()]));
+            }
+
             public function validateNonNullValue($rawValue) : bool
             {
                 return true;
@@ -112,7 +107,14 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
             {
                 return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
-                        'type',
+                        'mandatory',
+                        \Graphpinator\Container\Container::Int(),
+                        static function () : int {
+                            return 123;
+                        },
+                    ),
+                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                        'specific',
                         \Graphpinator\Container\Container::String(),
                         static function () : string {
                             return 'flexTypeResult';
@@ -128,15 +130,16 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
         $request = Json::fromNative((object) [
             'query' => 'query {
                 field {
-                    scalar
-                    ... on FlexSimple {
-                        flex { type }
-                    }
+                  scalar
+                  flex {
+                    mandatory
+                    ... on FlexType { specific }
+                  }
                 }
             }',
         ]);
 
-        $container = new \Graphpinator\SimpleContainer([self::getQuery(), self::getType(), self::getFlexSimple()], []);
+        $container = new \Graphpinator\SimpleContainer([self::getQuery(), self::getType(), self::getFlexSimple(), self::getFlexType()], []);
         $schema = new \Graphpinator\Typesystem\Schema($container, self::getQuery());
         $cache = [];
 
@@ -151,21 +154,16 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
             ]),
         );
 
-        $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
-
-        $graphpinator = new \Graphpinator\Graphpinator(
-            $schema,
-            false,
-            new \Graphpinator\Module\ModuleSet([
-                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
-                    $schema,
-                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
-                ),
-            ]),
+        self::assertSame(
+            Json::fromNative(['data' => ['field' => ['scalar' => 1, 'flex' => ['mandatory' => 123, 'specific' => 'flexTypeResult']]]])->toString(),
+            $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request))->toString(),
         );
 
-        $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+        self::assertSame(
+            Json::fromNative(['data' => ['field' => ['scalar' => 1, 'flex' => ['mandatory' => 123, 'specific' => 'flexTypeResult']]]])->toString(),
+            $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request))->toString(),
+        );
 
-        $this->assertArrayHasKey(1366466509, $cache);
+        $this->assertArrayHasKey(3380607393, $cache);
     }
 }

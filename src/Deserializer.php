@@ -52,7 +52,7 @@ final class Deserializer
             $operation->type,
             $operation->name,
             $rootType,
-            $this->deserializeFieldSet((object) $operation->fieldSet),
+            $this->deserializeSelectionSet((object) $operation->selectionSet),
             $variables,
             $this->deserializeDirectiveSet((object) $operation->directiveSet),
         );
@@ -62,37 +62,70 @@ final class Deserializer
         return $return;
     }
 
-    private function deserializeFieldSet(\stdClass $fieldSet) : \Graphpinator\Normalizer\Field\FieldSet
+    private function deserializeSelectionSet(\stdClass $selectionSet) : \Graphpinator\Normalizer\Selection\SelectionSet
     {
         $temp = [];
 
-        foreach ($fieldSet as $field) {
-            $temp[] = $this->deserializeField($field);
+        foreach ($selectionSet as $selection) {
+            $temp[] = match ($selection->selectionType) {
+                \Graphpinator\Normalizer\Selection\Field::class => $this->deserializeField($selection),
+                \Graphpinator\Normalizer\Selection\FragmentSpread::class => $this->deserializeFragmentSpread($selection),
+                \Graphpinator\Normalizer\Selection\InlineFragment::class => $this->deserializeInlineFragment($selection),
+            };
         }
 
-        return new \Graphpinator\Normalizer\Field\FieldSet($temp);
+        return new \Graphpinator\Normalizer\Selection\SelectionSet($temp);
     }
 
-    private function deserializeField(\stdClass $field) : \Graphpinator\Normalizer\Field\Field
+    private function deserializeField(\stdClass $field) : \Graphpinator\Normalizer\Selection\Field
     {
-        $typeCond = $this->getTypeConditionable($field->typeCond);
-        $type = $typeCond instanceof \Graphpinator\Typesystem\Contract\TypeConditionable
-            ? $typeCond
-            : $this->typeStack->top();
-        \assert($type instanceof \Graphpinator\Typesystem\Contract\Type);
-        $fieldDef = $type->accept(new \Graphpinator\Normalizer\GetFieldVisitor($field->fieldName));
+        $parentType = $this->typeStack->top();
+        \assert($parentType instanceof \Graphpinator\Typesystem\Contract\Type);
+        $fieldDef = $parentType->accept(new \Graphpinator\Normalizer\GetFieldVisitor($field->fieldName));
 
         $this->typeStack->push($fieldDef->getType()->getNamedType());
         $this->currentArguments = $fieldDef->getArguments();
 
-        $return = new \Graphpinator\Normalizer\Field\Field(
+        $return = new \Graphpinator\Normalizer\Selection\Field(
             $fieldDef,
             $field->alias,
             $this->deserializeArgumentValueSet((object) $field->argumentValueSet),
             $this->deserializeDirectiveSet((object) $field->directiveSet),
-            $field->fieldSet === null
+            $field->selectionSet === null
                 ? null
-                : $this->deserializeFieldSet((object) $field->fieldSet),
+                : $this->deserializeSelectionSet((object) $field->selectionSet),
+        );
+
+        $this->typeStack->pop();
+
+        return $return;
+    }
+
+    private function deserializeFragmentSpread(\stdClass $fragmentSpread) : \Graphpinator\Normalizer\Selection\FragmentSpread
+    {
+        $typeCond = $this->deserializeType($fragmentSpread->typeCond);
+        $this->typeStack->push($typeCond);
+
+        $return = new \Graphpinator\Normalizer\Selection\FragmentSpread(
+            $fragmentSpread->fragmentName,
+            $this->deserializeSelectionSet((object) $fragmentSpread->selectionSet),
+            $this->deserializeDirectiveSet((object) $fragmentSpread->directiveSet),
+            $typeCond,
+        );
+
+        $this->typeStack->pop();
+
+        return $return;
+    }
+
+    private function deserializeInlineFragment(\stdClass $inlineSpread) : \Graphpinator\Normalizer\Selection\InlineFragment
+    {
+        $typeCond = $this->deserializeType($inlineSpread->typeCond);
+        $this->typeStack->push($typeCond ?? $this->typeStack->top());
+
+        $return = new \Graphpinator\Normalizer\Selection\InlineFragment(
+            $this->deserializeSelectionSet((object) $inlineSpread->selectionSet),
+            $this->deserializeDirectiveSet((object) $inlineSpread->directiveSet),
             $typeCond,
         );
 
