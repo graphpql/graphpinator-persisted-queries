@@ -121,7 +121,8 @@ final class Deserializer
     private function deserializeInlineFragment(\stdClass $inlineSpread) : \Graphpinator\Normalizer\Selection\InlineFragment
     {
         $typeCond = $this->deserializeType($inlineSpread->typeCond);
-        $this->typeStack->push($typeCond ?? $this->typeStack->top());
+        $this->typeStack->push($typeCond
+            ?? $this->typeStack->top());
 
         $return = new \Graphpinator\Normalizer\Selection\InlineFragment(
             $this->deserializeSelectionSet((object) $inlineSpread->selectionSet),
