@@ -362,7 +362,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'fieldArg',
-                        \Graphpinator\Container\Container::Int()->notNull(),
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
                         static function (int $parent, int $arg1) : int {
                             return 1;
                         },
@@ -372,7 +372,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     ])),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'fieldArg1',
-                        \Graphpinator\Container\Container::Int()->notNull(),
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
                         static function (int $parent, ?int $arg1 = null) : int {
                             return 1;
                         },
@@ -382,7 +382,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     ])),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'fieldArg2',
-                        \Graphpinator\Container\Container::Int()->notNull(),
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
                         static function (int $parent, ?array $arg1 = null) : int {
                             return $arg1[0];
                         },
@@ -404,7 +404,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     ])),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'fieldArg4',
-                        \Graphpinator\Container\Container::Int()->notNull(),
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
                         static function ($parent, \stdClass $val) : int {
                             return $val->number;
                         },
@@ -416,7 +416,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     ])),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'fieldArg5',
-                        \Graphpinator\Container\Container::String()->notNull(),
+                        \Graphpinator\Typesystem\Container::String()->notNull(),
                         static function (int $parent, string $arg1) : string {
                             return $arg1;
                         },
@@ -426,7 +426,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                     ])),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'fieldArg6',
-                        \Graphpinator\Container\Container::String()->notNull(),
+                        \Graphpinator\Typesystem\Container::String()->notNull(),
                         static function (int $parent, ?string $arg1, ?int $arg2, ?bool $arg3) : string {
                             return 'abc';
                         },

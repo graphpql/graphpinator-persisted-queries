@@ -216,14 +216,14 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     ),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'scalar',
-                        \Graphpinator\Container\Container::Int()->notNull(),
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
                         static function () : int {
                             return 1;
                         },
                     ),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'fieldArg',
-                        \Graphpinator\Container\Container::Int()->notNull(),
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
                         static function (int $parent, int $arg1) : int {
                             return 1;
                         },

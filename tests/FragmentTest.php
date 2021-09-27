@@ -48,7 +48,7 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
                 return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'scalar',
-                        \Graphpinator\Container\Container::Int()->notNull(),
+                        \Graphpinator\Typesystem\Container::Int()->notNull(),
                         static function () : int {
                             return 1;
                         },
@@ -108,14 +108,14 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
                 return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'mandatory',
-                        \Graphpinator\Container\Container::Int(),
+                        \Graphpinator\Typesystem\Container::Int(),
                         static function () : int {
                             return 123;
                         },
                     ),
                     \Graphpinator\Typesystem\Field\ResolvableField::create(
                         'specific',
-                        \Graphpinator\Container\Container::String(),
+                        \Graphpinator\Typesystem\Container::String(),
                         static function () : string {
                             return 'flexTypeResult';
                         },
