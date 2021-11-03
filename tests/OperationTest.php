@@ -79,10 +79,14 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName { field { scalar } } query queryName2 { field { fieldArg } }',
                 ]),
                 1485165402,
-                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
-                . '}],"variableSet":[],"directiveSet":[]},{"type":"query","name":"queryName2","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field",'
-                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":'
+                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName"'
+                . ':"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar",'
+                . '"argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
+                . '}],"variableSet":[],"directiveSet":[]},{"type":"query","name":"queryName2","selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field",'
+                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":'
                 . '[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":123}}],'
                 . '"directiveSet":[],"selectionSet":null}]}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
@@ -92,11 +96,16 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                     'query' => 'query queryName { field { scalar } } query queryName2 { field2 { field { fieldArg } } }',
                 ]),
                 1589897943,
-                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
-                . '}],"variableSet":[],"directiveSet":[]},{"type":"query","name":"queryName2","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field2",'
-                . '"alias":"field2","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[]'
-                . ',"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":'
+                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
+                . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":'
+                . '"scalar","argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
+                . '}],"variableSet":[],"directiveSet":[]},{"type":"query","name":"queryName2","selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field2",'
+                . '"alias":"field2","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[]'
+                . ',"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg",'
+                . '"alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":'
                 . '{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":123}}],"directiveSet":[],'
                 . '"selectionSet":null}]}]}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
@@ -107,11 +116,16 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                         . 'thirdField: mutationField }',
                 ]),
                 2364436310,
-                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
-                . '}],"variableSet":[],"directiveSet":[]},{"type":"mutation","name":"mutationName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
-                . '"mutationField","alias":"mutationField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName"'
-                . ':"mutationField","alias":"secondField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
+                . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar",'
+                . '"argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
+                . '}],"variableSet":[],"directiveSet":[]},{"type":"mutation","name":"mutationName","selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                . '"mutationField","alias":"mutationField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName"'
+                . ':"mutationField","alias":"secondField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"mutationField","alias":"thirdField","argumentValueSet":[],"directiveSet":[],"selectionSet":null}],"variableSet":[]'
                 . ',"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
@@ -122,13 +136,19 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                         . 'mutationField, thirdField: mutationField } subscription subscriptionName { subscriptionField }',
                 ]),
                 1309780448,
-                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
-                . '}],"variableSet":[],"directiveSet":[]},{"type":"mutation","name":"mutationName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
-                . '"mutationField","alias":"mutationField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName"'
-                . ':"mutationField","alias":"secondField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar",'
+                . '"argumentValueSet":[],"directiveSet":[],"selectionSet":null}]'
+                . '}],"variableSet":[],"directiveSet":[]},{"type":"mutation","name":"mutationName","selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                . '"mutationField","alias":"mutationField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName"'
+                . ':"mutationField","alias":"secondField","argumentValueSet":[],"directiveSet":[],"selectionSet":null},{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"mutationField","alias":"thirdField","argumentValueSet":[],"directiveSet":[],"selectionSet":null}],"variableSet":[]'
-                . ',"directiveSet":[]},{"type":"subscription","name":"subscriptionName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"subscriptionField","alias":'
+                . ',"directiveSet":[]},{"type":"subscription","name":"subscriptionName","selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"subscriptionField","alias":'
                 . '"subscriptionField","argumentValueSet":[],"directiveSet":[],"selectionSet":null}],"variableSet":[],'
                 . '"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),

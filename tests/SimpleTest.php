@@ -16,9 +16,12 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { field { field { scalar } } } }',
                 ]),
                 1920335920,
-                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field",'
-                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field",'
+                . '"argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
+                . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
                 . '"directiveSet":[],"selectionSet":null}]}]}]}],'
                 . '"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['field' => ['field' => ['scalar' => 1]]]]]),
@@ -28,8 +31,10 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { fieldArg(arg1: 456) } }',
                 ]),
                 2503903000,
-                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1",'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg",'
+                . '"argumentValueSet":[{"argument":"arg1",'
                 . '"value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[],'
                 . '"selectionSet":null}]}],"variableSet":[],"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) [
@@ -45,8 +50,10 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: false) } }',
                 ]),
                 4262924343,
-                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":'
+                . '"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":[{"directive":'
                 . '"include","arguments":[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named"'
                 . ',"name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":[{"argument":"if","value":{"valueType":'
@@ -66,8 +73,10 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: true) } }',
                 ]),
                 84548630,
-                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":'
-                . '[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":{"valueType":'
+                '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+                . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":'
+                . '[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg",'
+                . '"argumentValueSet":[{"argument":"arg1","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":456}}],"directiveSet":'
                 . '[{"directive":"include","arguments":[{"argument":"if","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue",'
                 . '"type":{"type":"named","name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":[{"argument":"if","value":{"valueType":'
@@ -85,9 +94,13 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
                     fragment namedFragment on Query { field { field { field { scalar } } } }',
                 ]),
                 1205484868,
-                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\FragmentSpread","fragmentName":"namedFragment","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
-                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field",'
-                . '"alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
+                '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\FragmentSpread",'
+                . '"fragmentName":"namedFragment","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
+                . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
+                . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field",'
+                . '"argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
+                . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":[{"selectionType":'
+                . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar","argumentValueSet":[],'
                 . '"directiveSet":[],"selectionSet":null}]}]}]}],"directiveSet":[],"typeCond":{"type":"named","name":"Query"}}],"variableSet":[],'
                 . '"directiveSet":[]}]',
                 \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['field' => ['field' => ['scalar' => 1]]]]]),
@@ -122,6 +135,42 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
+        $this->assertEquals(60 * 60, $cache[$crc32 . 'ttl']);
+        self::assertSame(
+            $expectedResult->toString(),
+            $result->toString(),
+        );
+    }
+
+    /**
+     * @param \Infinityloop\Utils\Json $request
+     * @param int $crc32
+     * @param string $expectedCache
+     * @dataProvider simpleDataProvider
+     */
+    public function testSimpleTtl(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
+    {
+        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), $this->getType()], []);
+        $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
+        $cache = [];
+
+        $graphpinator = new \Graphpinator\Graphpinator(
+            $schema,
+            false,
+            new \Graphpinator\Module\ModuleSet([
+                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+                    $schema,
+                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+                    40 * 45,
+                ),
+            ]),
+        );
+
+        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+
+        $this->assertArrayHasKey($crc32, $cache);
+        $this->assertEquals($expectedCache, $cache[$crc32]);
+        $this->assertEquals(40 * 45, $cache[$crc32 . 'ttl']);
         self::assertSame(
             $expectedResult->toString(),
             $result->toString(),

@@ -50,7 +50,8 @@ final class ResolverValueTest extends \PHPUnit\Framework\TestCase
 
         $this->assertArrayHasKey(3834652180, $cache);
         $this->assertEquals(
-            '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field","argumentValueSet":[{"argument":"arg"'
+            '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
+            . '"field","alias":"field","argumentValueSet":[{"argument":"arg"'
             . ',"value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"abc","resolverValue":"O:8:'
             . '\"DateTime\":3:{s:4:\"date\";s:26:\"2021-06-29 00:00:00.000000\";s:13:\"timezone_type\";i:3;s:8:\"timezone\";s:3:\"UTC\";}"}}],'
             . '"directiveSet":[],"selectionSet":null}],"variableSet":[],"directiveSet":[]}]',
