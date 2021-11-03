@@ -135,6 +135,42 @@ final class SimpleTest extends \PHPUnit\Framework\TestCase
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
+        $this->assertEquals(60 * 60, $cache[$crc32 . 'ttl']);
+        self::assertSame(
+            $expectedResult->toString(),
+            $result->toString(),
+        );
+    }
+
+    /**
+     * @param \Infinityloop\Utils\Json $request
+     * @param int $crc32
+     * @param string $expectedCache
+     * @dataProvider simpleDataProvider
+     */
+    public function testSimpleTtl(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
+    {
+        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), $this->getType()], []);
+        $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
+        $cache = [];
+
+        $graphpinator = new \Graphpinator\Graphpinator(
+            $schema,
+            false,
+            new \Graphpinator\Module\ModuleSet([
+                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+                    $schema,
+                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+                    40 * 45,
+                ),
+            ]),
+        );
+
+        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+
+        $this->assertArrayHasKey($crc32, $cache);
+        $this->assertEquals($expectedCache, $cache[$crc32]);
+        $this->assertEquals(40 * 45, $cache[$crc32 . 'ttl']);
         self::assertSame(
             $expectedResult->toString(),
             $result->toString(),

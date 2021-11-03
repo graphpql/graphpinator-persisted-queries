@@ -24,6 +24,7 @@ final class ArrayCache implements \Psr\SimpleCache\CacheInterface
     public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null) : bool
     {
         $this->cache[$key] = $value;
+        $this->cache[$key . 'ttl'] = $ttl;
 
         return true;
     }

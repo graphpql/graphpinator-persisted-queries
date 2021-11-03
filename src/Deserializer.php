@@ -209,18 +209,6 @@ final class Deserializer
         );
     }
 
-    private function getTypeConditionable(?string $typeCond) : ?\Graphpinator\Typesystem\Contract\TypeConditionable
-    {
-        if ($typeCond === null) {
-            return null;
-        }
-
-        $type = $this->typeStack->top();
-        \assert($type instanceof \Graphpinator\Typesystem\Contract\Type);
-
-        return $this->schema->getContainer()->getType($typeCond);
-    }
-
     private function deserializeType(\stdClass $type) : \Graphpinator\Typesystem\Contract\Type
     {
         return match ($type->type) {
