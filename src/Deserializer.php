@@ -6,8 +6,6 @@ namespace Graphpinator\PersistedQueries;
 
 final class Deserializer
 {
-    use \Nette\SmartObject;
-
     private \SplStack $typeStack;
     private \Graphpinator\Typesystem\Argument\ArgumentSet $currentArguments;
     private \Graphpinator\Normalizer\Variable\VariableSet $currentVariableSet;
@@ -41,9 +39,9 @@ final class Deserializer
     private function deserializeOperation(\stdClass $operation) : \Graphpinator\Normalizer\Operation\Operation
     {
         $rootType = match ($operation->type) {
-            \Graphpinator\Tokenizer\OperationType::QUERY => $this->schema->getQuery(),
-            \Graphpinator\Tokenizer\OperationType::MUTATION => $this->schema->getMutation(),
-            \Graphpinator\Tokenizer\OperationType::SUBSCRIPTION => $this->schema->getSubscription(),
+            \Graphpinator\Tokenizer\TokenType::QUERY->value => $this->schema->getQuery(),
+            \Graphpinator\Tokenizer\TokenType::MUTATION->value => $this->schema->getMutation(),
+            \Graphpinator\Tokenizer\TokenType::SUBSCRIPTION->value => $this->schema->getSubscription(),
         };
         $this->typeStack->push($rootType);
         $variables = $this->deserializeVariableSet((object) $operation->variableSet);

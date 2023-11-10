@@ -6,8 +6,6 @@ namespace Graphpinator\PersistedQueries;
 
 class PersistedQueriesModule implements \Graphpinator\Module\Module
 {
-    use \Nette\SmartObject;
-
     private string $queryHash;
 
     public function __construct(

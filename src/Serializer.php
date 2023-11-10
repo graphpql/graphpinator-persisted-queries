@@ -6,8 +6,6 @@ namespace Graphpinator\PersistedQueries;
 
 final class Serializer
 {
-    use \Nette\SmartObject;
-
     public function serializeNormalizedRequest(\Graphpinator\Normalizer\NormalizedRequest $normalizedRequest) : string
     {
         return \Infinityloop\Utils\Json::fromNative($this->serializeOperationSet($normalizedRequest->getOperations()))->toString();
