@@ -4,14 +4,40 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries;
 
+use Graphpinator\Normalizer\Directive\Directive;
+use Graphpinator\Normalizer\Directive\DirectiveSet;
+use Graphpinator\Normalizer\NormalizedRequest;
+use Graphpinator\Normalizer\Operation\Operation;
+use Graphpinator\Normalizer\Operation\OperationSet;
+use Graphpinator\Normalizer\Selection\Field;
+use Graphpinator\Normalizer\Selection\FragmentSpread;
+use Graphpinator\Normalizer\Selection\InlineFragment;
+use Graphpinator\Normalizer\Selection\SelectionSet;
+use Graphpinator\Normalizer\Variable\Variable;
+use Graphpinator\Normalizer\Variable\VariableSet;
+use Graphpinator\Typesystem\Contract\Type;
+use Graphpinator\Typesystem\Contract\TypeConditionable;
+use Graphpinator\Typesystem\ListType;
+use Graphpinator\Typesystem\NotNullType;
+use Graphpinator\Value\ArgumentValue;
+use Graphpinator\Value\ArgumentValueSet;
+use Graphpinator\Value\EnumValue;
+use Graphpinator\Value\InputValue;
+use Graphpinator\Value\InputedValue;
+use Graphpinator\Value\ListInputedValue;
+use Graphpinator\Value\NullInputedValue;
+use Graphpinator\Value\ScalarValue;
+use Graphpinator\Value\VariableValue;
+use Infinityloop\Utils\Json;
+
 final class Serializer
 {
-    public function serializeNormalizedRequest(\Graphpinator\Normalizer\NormalizedRequest $normalizedRequest) : string
+    public function serializeNormalizedRequest(NormalizedRequest $normalizedRequest) : string
     {
-        return \Infinityloop\Utils\Json::fromNative($this->serializeOperationSet($normalizedRequest->getOperations()))->toString();
+        return Json::fromNative($this->serializeOperationSet($normalizedRequest->getOperations()))->toString();
     }
 
-    private function serializeOperationSet(\Graphpinator\Normalizer\Operation\OperationSet $operationSet) : array
+    private function serializeOperationSet(OperationSet $operationSet) : array
     {
         $temp = [];
 
@@ -22,7 +48,7 @@ final class Serializer
         return $temp;
     }
 
-    private function serializeOperation(\Graphpinator\Normalizer\Operation\Operation $operation) : array
+    private function serializeOperation(Operation $operation) : array
     {
         return [
             'type' => $operation->getType(),
@@ -33,7 +59,7 @@ final class Serializer
         ];
     }
 
-    private function serializeDirectiveSet(\Graphpinator\Normalizer\Directive\DirectiveSet $set) : array
+    private function serializeDirectiveSet(DirectiveSet $set) : array
     {
         $temp = [];
 
@@ -44,7 +70,7 @@ final class Serializer
         return $temp;
     }
 
-    private function serializeDirective(\Graphpinator\Normalizer\Directive\Directive $directive) : array
+    private function serializeDirective(Directive $directive) : array
     {
         return [
             'directive' => $directive->getDirective()->getName(),
@@ -52,7 +78,7 @@ final class Serializer
         ];
     }
 
-    private function serializeVariableSet(\Graphpinator\Normalizer\Variable\VariableSet $set) : array
+    private function serializeVariableSet(VariableSet $set) : array
     {
         $temp = [];
 
@@ -63,7 +89,7 @@ final class Serializer
         return $temp;
     }
 
-    private function serializeVariable(\Graphpinator\Normalizer\Variable\Variable $variable) : array
+    private function serializeVariable(Variable $variable) : array
     {
         return [
             'name' => $variable->getName(),
@@ -74,25 +100,25 @@ final class Serializer
         ];
     }
 
-    private function serializeSelectionSet(\Graphpinator\Normalizer\Selection\SelectionSet $selectionSet) : array
+    private function serializeSelectionSet(SelectionSet $selectionSet) : array
     {
         $temp = [];
 
         foreach ($selectionSet as $selection) {
             $temp[] = match ($selection::class) {
-                \Graphpinator\Normalizer\Selection\Field::class => $this->serializeField($selection),
-                \Graphpinator\Normalizer\Selection\FragmentSpread::class => $this->serializeFragmentSpread($selection),
-                \Graphpinator\Normalizer\Selection\InlineFragment::class => $this->serializeInlineFragment($selection),
+                Field::class => $this->serializeField($selection),
+                FragmentSpread::class => $this->serializeFragmentSpread($selection),
+                InlineFragment::class => $this->serializeInlineFragment($selection),
             };
         }
 
         return $temp;
     }
 
-    private function serializeField(\Graphpinator\Normalizer\Selection\Field $field) : array
+    private function serializeField(Field $field) : array
     {
         return [
-            'selectionType' => \Graphpinator\Normalizer\Selection\Field::class,
+            'selectionType' => Field::class,
             'fieldName' => $field->getField()->getName(),
             'alias' => $field->getOutputName(),
             'argumentValueSet' => $this->serializeArgumentValueSet($field->getArguments()),
@@ -103,10 +129,10 @@ final class Serializer
         ];
     }
 
-    private function serializeFragmentSpread(\Graphpinator\Normalizer\Selection\FragmentSpread $fragmentSpread) : array
+    private function serializeFragmentSpread(FragmentSpread $fragmentSpread) : array
     {
         return [
-            'selectionType' => \Graphpinator\Normalizer\Selection\FragmentSpread::class,
+            'selectionType' => FragmentSpread::class,
             'fragmentName' => $fragmentSpread->getName(),
             'selectionSet' => $this->serializeSelectionSet($fragmentSpread->getSelections()),
             'directiveSet' => $this->serializeDirectiveSet($fragmentSpread->getDirectives()),
@@ -114,19 +140,19 @@ final class Serializer
         ];
     }
 
-    private function serializeInlineFragment(\Graphpinator\Normalizer\Selection\InlineFragment $inlineFragment) : array
+    private function serializeInlineFragment(InlineFragment $inlineFragment) : array
     {
         return [
-            'selectionType' => \Graphpinator\Normalizer\Selection\InlineFragment::class,
+            'selectionType' => InlineFragment::class,
             'selectionSet' => $this->serializeSelectionSet($inlineFragment->getSelections()),
             'directiveSet' => $this->serializeDirectiveSet($inlineFragment->getDirectives()),
-            'typeCond' => $inlineFragment->getTypeCondition() instanceof \Graphpinator\Typesystem\Contract\TypeConditionable
+            'typeCond' => $inlineFragment->getTypeCondition() instanceof TypeConditionable
                 ? $this->serializeType($inlineFragment->getTypeCondition())
                 : null,
         ];
     }
 
-    private function serializeArgumentValueSet(\Graphpinator\Value\ArgumentValueSet $argumentValueSet) : array
+    private function serializeArgumentValueSet(ArgumentValueSet $argumentValueSet) : array
     {
         $temp = [];
 
@@ -137,7 +163,7 @@ final class Serializer
         return $temp;
     }
 
-    private function serializeArgumentValue(\Graphpinator\Value\ArgumentValue $argumentValue) : array
+    private function serializeArgumentValue(ArgumentValue $argumentValue) : array
     {
         return [
             'argument' => $argumentValue->getArgument()->getName(),
@@ -145,7 +171,7 @@ final class Serializer
         ];
     }
 
-    private function serializeInputedValue(\Graphpinator\Value\InputedValue $inputedValue) : array
+    private function serializeInputedValue(InputedValue $inputedValue) : array
     {
         $data = [
             'valueType' => $inputedValue::class,
@@ -153,9 +179,9 @@ final class Serializer
         ];
 
         switch ($inputedValue::class) {
-            case \Graphpinator\Value\NullInputedValue::class:
+            case NullInputedValue::class:
                 break;
-            case \Graphpinator\Value\ScalarValue::class:
+            case ScalarValue::class:
                 $data['value'] = $inputedValue->getRawValue();
 
                 if ($inputedValue->hasResolverValue()) {
@@ -163,30 +189,30 @@ final class Serializer
                 }
 
                 break;
-            case \Graphpinator\Value\EnumValue::class:
+            case EnumValue::class:
                 $data['value'] = $inputedValue->getRawValue();
 
                 break;
-            case \Graphpinator\Value\VariableValue::class:
+            case VariableValue::class:
                 $data['variableName'] = $inputedValue->getVariable()->getName();
 
                 break;
-            case \Graphpinator\Value\ListInputedValue::class:
+            case ListInputedValue::class:
                 $inner = [];
 
                 foreach ($inputedValue as $item) {
-                    \assert($item instanceof \Graphpinator\Value\InputedValue);
+                    \assert($item instanceof InputedValue);
                     $inner[] = $this->serializeInputedValue($item);
                 }
 
                 $data['inner'] = $inner;
 
                 break;
-            case \Graphpinator\Value\InputValue::class:
+            case InputValue::class:
                 $inner = [];
 
                 foreach ($inputedValue as $key => $item) {
-                    \assert($item instanceof \Graphpinator\Value\ArgumentValue);
+                    \assert($item instanceof ArgumentValue);
                     $inner[$key] = $this->serializeArgumentValue($item);
                 }
 
@@ -198,14 +224,14 @@ final class Serializer
         return $data;
     }
 
-    private function serializeType(\Graphpinator\Typesystem\Contract\Type $type) : array
+    private function serializeType(Type $type) : array
     {
         return match ($type::class) {
-            \Graphpinator\Typesystem\ListType::class => [
+            ListType::class => [
                 'type' => 'list',
                 'inner' => $this->serializeType($type->getInnerType()),
             ],
-            \Graphpinator\Typesystem\NotNullType::class => [
+            NotNullType::class => [
                 'type' => 'notnull',
                 'inner' => $this->serializeType($type->getInnerType()),
             ],

@@ -4,13 +4,29 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries\Tests;
 
-use \Infinityloop\Utils\Json;
+use Graphpinator\Graphpinator;
+use Graphpinator\Module\ModuleSet;
+use Graphpinator\PersistedQueries\PersistedQueriesModule;
+use Graphpinator\Request\JsonRequestFactory;
+use Graphpinator\SimpleContainer;
+use Graphpinator\Typesystem\Container;
+use Graphpinator\Typesystem\Field\Field;
+use Graphpinator\Typesystem\Field\FieldSet;
+use Graphpinator\Typesystem\Field\ResolvableField;
+use Graphpinator\Typesystem\Field\ResolvableFieldSet;
+use Graphpinator\Typesystem\InterfaceSet;
+use Graphpinator\Typesystem\InterfaceType;
+use Graphpinator\Typesystem\Schema;
+use Graphpinator\Typesystem\Type;
+use Graphpinator\Value\TypeIntermediateValue;
+use Infinityloop\Utils\Json;
+use PHPUnit\Framework\TestCase;
 
-final class FragmentTest extends \PHPUnit\Framework\TestCase
+final class FragmentTest extends TestCase
 {
-    public static function getQuery() : \Graphpinator\Typesystem\Type
+    public static function getQuery() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             protected const NAME = 'Query';
 
             public function validateNonNullValue(mixed $rawValue) : bool
@@ -18,10 +34,10 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'field',
                         FragmentTest::getType(),
                         static function () : int {
@@ -33,9 +49,9 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
         };
     }
 
-    public static function getType() : \Graphpinator\Typesystem\Type
+    public static function getType() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             protected const NAME = 'Type';
 
             public function validateNonNullValue(mixed $rawValue) : bool
@@ -43,17 +59,17 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'scalar',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function () : int {
                             return 1;
                         },
                     ),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'flex',
                         FragmentTest::getFlexSimple(),
                         static function () : int {
@@ -65,37 +81,37 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
         };
     }
 
-    public static function getFlexSimple() : \Graphpinator\Typesystem\InterfaceType
+    public static function getFlexSimple() : InterfaceType
     {
-        return new class extends \Graphpinator\Typesystem\InterfaceType {
+        return new class extends InterfaceType {
             protected const NAME = 'FlexSimple';
 
-            public function createResolvedValue($rawValue) : \Graphpinator\Value\TypeIntermediateValue
+            public function createResolvedValue($rawValue) : TypeIntermediateValue
             {
-                return new \Graphpinator\Value\TypeIntermediateValue(
+                return new TypeIntermediateValue(
                     FragmentTest::getFlexType(),
                     123,
                 );
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\FieldSet
+            protected function getFieldDefinition() : FieldSet
             {
-                return new \Graphpinator\Typesystem\Field\FieldSet([
-                    new \Graphpinator\Typesystem\Field\Field('mandatory', \Graphpinator\Typesystem\Container::Int()),
+                return new FieldSet([
+                    new Field('mandatory', Container::Int()),
                 ]);
             }
         };
     }
 
-    public static function getFlexType() : \Graphpinator\Typesystem\Type
+    public static function getFlexType() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type
+        return new class extends Type
         {
             protected const NAME = 'FlexType';
 
             public function __construct()
             {
-                parent::__construct(new \Graphpinator\Typesystem\InterfaceSet([FragmentTest::getFlexSimple()]));
+                parent::__construct(new InterfaceSet([FragmentTest::getFlexSimple()]));
             }
 
             public function validateNonNullValue($rawValue) : bool
@@ -103,19 +119,19 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'mandatory',
-                        \Graphpinator\Typesystem\Container::Int(),
+                        Container::Int(),
                         static function () : int {
                             return 123;
                         },
                     ),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'specific',
-                        \Graphpinator\Typesystem\Container::String(),
+                        Container::String(),
                         static function () : string {
                             return 'flexTypeResult';
                         },
@@ -139,29 +155,29 @@ final class FragmentTest extends \PHPUnit\Framework\TestCase
             }',
         ]);
 
-        $container = new \Graphpinator\SimpleContainer([self::getQuery(), self::getType(), self::getFlexSimple(), self::getFlexType()], []);
-        $schema = new \Graphpinator\Typesystem\Schema($container, self::getQuery());
+        $container = new SimpleContainer([self::getQuery(), self::getType(), self::getFlexSimple(), self::getFlexType()], []);
+        $schema = new Schema($container, self::getQuery());
         $cache = [];
 
-        $graphpinator = new \Graphpinator\Graphpinator(
+        $graphpinator = new Graphpinator(
             $schema,
             false,
-            new \Graphpinator\Module\ModuleSet([
-                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+            new ModuleSet([
+                new PersistedQueriesModule(
                     $schema,
-                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+                    new ArrayCache($cache),
                 ),
             ]),
         );
 
         self::assertSame(
             Json::fromNative(['data' => ['field' => ['scalar' => 1, 'flex' => ['mandatory' => 123, 'specific' => 'flexTypeResult']]]])->toString(),
-            $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request))->toString(),
+            $graphpinator->run(new JsonRequestFactory($request))->toString(),
         );
 
         self::assertSame(
             Json::fromNative(['data' => ['field' => ['scalar' => 1, 'flex' => ['mandatory' => 123, 'specific' => 'flexTypeResult']]]])->toString(),
-            $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request))->toString(),
+            $graphpinator->run(new JsonRequestFactory($request))->toString(),
         );
 
         $this->assertArrayHasKey(3380607393, $cache);

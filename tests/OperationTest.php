@@ -4,22 +4,35 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries\Tests;
 
-use \Infinityloop\Utils\Json;
+use Graphpinator\Graphpinator;
+use Graphpinator\Module\ModuleSet;
+use Graphpinator\PersistedQueries\PersistedQueriesModule;
+use Graphpinator\Request\JsonRequestFactory;
+use Graphpinator\SimpleContainer;
+use Graphpinator\Typesystem\Argument\Argument;
+use Graphpinator\Typesystem\Argument\ArgumentSet;
+use Graphpinator\Typesystem\Container;
+use Graphpinator\Typesystem\Field\ResolvableField;
+use Graphpinator\Typesystem\Field\ResolvableFieldSet;
+use Graphpinator\Typesystem\Schema;
+use Graphpinator\Typesystem\Type;
+use Infinityloop\Utils\Json;
+use PHPUnit\Framework\TestCase;
 
-final class OperationTest extends \PHPUnit\Framework\TestCase
+final class OperationTest extends TestCase
 {
-    public static function getType2() : \Graphpinator\Typesystem\Type
+    public static function getType2() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'field',
                         OperationTest::getType(),
                         static function () : int {
@@ -31,39 +44,39 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
         };
     }
 
-    public static function getType() : \Graphpinator\Typesystem\Type
+    public static function getType() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'field',
                         $this,
                         static function () : int {
                             return 123;
                         },
                     ),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'scalar',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function () : int {
                             return 987;
                         },
                     ),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'fieldArg',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function (int $parent, int $arg1) : int {
                             return 1;
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::Int())
+                    )->setArguments(new ArgumentSet([
+                        Argument::create('arg1', Container::Int())
                             ->setDefaultValue(123),
                     ])),
                 ]);
@@ -89,7 +102,7 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                 . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg","argumentValueSet":'
                 . '[{"argument":"arg1","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":123}}],'
                 . '"directiveSet":[],"selectionSet":null}]}],"variableSet":[],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
+                Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
             ],
             [
                 Json::fromNative((object) [
@@ -108,7 +121,7 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                 . '"alias":"fieldArg","argumentValueSet":[{"argument":"arg1","value":'
                 . '{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":123}}],"directiveSet":[],'
                 . '"selectionSet":null}]}]}],"variableSet":[],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
+                Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
             ],
             [
                 Json::fromNative((object) [
@@ -128,7 +141,7 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                 . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"mutationField","alias":"thirdField","argumentValueSet":[],"directiveSet":[],"selectionSet":null}],"variableSet":[]'
                 . ',"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
+                Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
             ],
             [
                 Json::fromNative((object) [
@@ -151,35 +164,35 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                 . '"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"subscriptionField","alias":'
                 . '"subscriptionField","argumentValueSet":[],"directiveSet":[],"selectionSet":null}],"variableSet":[],'
                 . '"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
+                Json::fromNative((object) ['data' => ['field' => ['scalar' => 987]]]),
             ],
         ];
     }
 
     /**
-     * @param \Infinityloop\Utils\Json $request
+     * @param Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
      */
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([$this->getQuery()], []);
-        $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery(), $this->getMutation(), $this->getSubscription());
+        $container = new SimpleContainer([$this->getQuery()], []);
+        $schema = new Schema($container, $this->getQuery(), $this->getMutation(), $this->getSubscription());
         $cache = [];
 
-        $graphpinator = new \Graphpinator\Graphpinator(
+        $graphpinator = new Graphpinator(
             $schema,
             false,
-            new \Graphpinator\Module\ModuleSet([
-                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+            new ModuleSet([
+                new PersistedQueriesModule(
                     $schema,
-                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+                    new ArrayCache($cache),
                 ),
             ]),
         );
 
-        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+        $result = $graphpinator->run(new JsonRequestFactory($request));
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
@@ -190,30 +203,30 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param \Infinityloop\Utils\Json $request
+     * @param Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
      */
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([$this->getQuery()], []);
-        $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery(), $this->getMutation(), $this->getSubscription());
+        $container = new SimpleContainer([$this->getQuery()], []);
+        $schema = new Schema($container, $this->getQuery(), $this->getMutation(), $this->getSubscription());
         $cache = [];
         $cache[$crc32] = $expectedCache;
 
-        $graphpinator = new \Graphpinator\Graphpinator(
+        $graphpinator = new Graphpinator(
             $schema,
             false,
-            new \Graphpinator\Module\ModuleSet([
-                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+            new ModuleSet([
+                new PersistedQueriesModule(
                     $schema,
-                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+                    new ArrayCache($cache),
                 ),
             ]),
         );
 
-        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+        $result = $graphpinator->run(new JsonRequestFactory($request));
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
@@ -223,9 +236,9 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function getMutation() : \Graphpinator\Typesystem\Type
+    public function getMutation() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             private int $order = 0;
 
             public function validateNonNullValue(mixed $rawValue) : bool
@@ -233,12 +246,12 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'mutationField',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         function ($parent) : int {
                             $result = $this->order;
                             ++$this->order;
@@ -251,20 +264,20 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
         };
     }
 
-    public function getSubscription() : \Graphpinator\Typesystem\Type
+    public function getSubscription() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'subscriptionField',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function ($parent) : int {
                             return 1;
                         },
@@ -274,11 +287,11 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
         };
     }
 
-    private function getQuery() : \Graphpinator\Typesystem\Type
+    private function getQuery() : Type
     {
-        return new class ($this->getType()) extends \Graphpinator\Typesystem\Type {
+        return new class ($this->getType()) extends Type {
             public function __construct(
-                private \Graphpinator\Typesystem\Type $type,
+                private Type $type,
             )
             {
                 parent::__construct();
@@ -289,17 +302,17 @@ final class OperationTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'field',
                         $this->type->notNull(),
                         static function () : int {
                             return 321;
                         },
                     ),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'field2',
                         OperationTest::getType2(),
                         static function () : int {

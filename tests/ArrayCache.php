@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries\Tests;
 
-final class ArrayCache implements \Psr\SimpleCache\CacheInterface
+use Psr\SimpleCache\CacheInterface;
+
+final class ArrayCache implements CacheInterface
 {
     public function __construct(
         private array &$cache = [],

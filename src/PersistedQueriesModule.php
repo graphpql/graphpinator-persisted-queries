@@ -4,19 +4,28 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries;
 
-class PersistedQueriesModule implements \Graphpinator\Module\Module
+use Graphpinator\Module\Module;
+use Graphpinator\Normalizer\FinalizedRequest;
+use Graphpinator\Normalizer\NormalizedRequest;
+use Graphpinator\Parser\ParsedRequest;
+use Graphpinator\Request\Request;
+use Graphpinator\Result;
+use Graphpinator\Typesystem\Schema;
+use Psr\SimpleCache\CacheInterface;
+
+class PersistedQueriesModule implements Module
 {
     private string $queryHash;
 
     public function __construct(
-        private \Graphpinator\Typesystem\Schema $schema,
-        private \Psr\SimpleCache\CacheInterface $cache,
+        private Schema $schema,
+        private CacheInterface $cache,
         private int $ttl = 60 * 60,
     )
     {
     }
 
-    public function processRequest(\Graphpinator\Request\Request $request) : \Graphpinator\Request\Request|\Graphpinator\Normalizer\NormalizedRequest
+    public function processRequest(Request $request) : Request|NormalizedRequest
     {
         $this->queryHash = (string) \crc32($request->getQuery());
 
@@ -31,12 +40,12 @@ class PersistedQueriesModule implements \Graphpinator\Module\Module
         return $request;
     }
 
-    public function processParsed(\Graphpinator\Parser\ParsedRequest $request) : \Graphpinator\Parser\ParsedRequest
+    public function processParsed(ParsedRequest $request) : ParsedRequest
     {
         return $request;
     }
 
-    public function processNormalized(\Graphpinator\Normalizer\NormalizedRequest $request) : \Graphpinator\Normalizer\NormalizedRequest
+    public function processNormalized(NormalizedRequest $request) : NormalizedRequest
     {
         $serializer = new Serializer();
 
@@ -45,12 +54,12 @@ class PersistedQueriesModule implements \Graphpinator\Module\Module
         return $request;
     }
 
-    public function processFinalized(\Graphpinator\Normalizer\FinalizedRequest $request) : \Graphpinator\Normalizer\FinalizedRequest
+    public function processFinalized(FinalizedRequest $request) : FinalizedRequest
     {
         return $request;
     }
 
-    public function processResult(\Graphpinator\Result $result) : \Graphpinator\Result
+    public function processResult(Result $result) : Result
     {
         return $result;
     }

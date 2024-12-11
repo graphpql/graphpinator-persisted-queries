@@ -4,19 +4,33 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries\Tests;
 
-use \Infinityloop\Utils\Json;
+use Graphpinator\Graphpinator;
+use Graphpinator\Module\ModuleSet;
+use Graphpinator\PersistedQueries\PersistedQueriesModule;
+use Graphpinator\Request\JsonRequestFactory;
+use Graphpinator\SimpleContainer;
+use Graphpinator\Typesystem\Argument\Argument;
+use Graphpinator\Typesystem\Argument\ArgumentSet;
+use Graphpinator\Typesystem\Container;
+use Graphpinator\Typesystem\EnumType;
+use Graphpinator\Typesystem\Field\ResolvableField;
+use Graphpinator\Typesystem\Field\ResolvableFieldSet;
+use Graphpinator\Typesystem\InputType;
+use Graphpinator\Typesystem\Schema;
+use Graphpinator\Typesystem\Type;
+use Infinityloop\Utils\Json;
+use PHPUnit\Framework\TestCase;
 
-final class VariableTest extends \PHPUnit\Framework\TestCase
+final class VariableTest extends TestCase
 {
-    public static function getSimpleEnum() : \Graphpinator\Typesystem\EnumType
+    public static function getSimpleEnum() : EnumType
     {
-        return new class extends \Graphpinator\Typesystem\EnumType
+        return new class extends EnumType
         {
             public const A = 'A';
             public const B = 'B';
             public const C = 'C';
             public const D = 'D';
-
             protected const NAME = 'SimpleEnum';
 
             public function __construct()
@@ -26,26 +40,26 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
         };
     }
 
-    public static function getSimpleInput() : \Graphpinator\Typesystem\InputType
+    public static function getSimpleInput() : InputType
     {
-        return new class extends \Graphpinator\Typesystem\InputType
+        return new class extends InputType
         {
             protected const NAME = 'SimpleInput';
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Argument\ArgumentSet
+            protected function getFieldDefinition() : ArgumentSet
             {
-                return new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                    new \Graphpinator\Typesystem\Argument\Argument(
+                return new ArgumentSet([
+                    new Argument(
                         'name',
-                        \Graphpinator\Typesystem\Container::String()->notNull(),
+                        Container::String()->notNull(),
                     ),
-                    new \Graphpinator\Typesystem\Argument\Argument(
+                    new Argument(
                         'number',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                     ),
-                    new \Graphpinator\Typesystem\Argument\Argument(
+                    new Argument(
                         'bool',
-                        \Graphpinator\Typesystem\Container::Boolean(),
+                        Container::Boolean(),
                     ),
                 ]);
             }
@@ -68,7 +82,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"selectionSet":null}]}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},'
                 . '"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":451}}],'
                 . '"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg' => 1,
@@ -89,7 +103,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"selectionSet":null}]}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},'
                 . '"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":451}}],'
                 . '"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg' => 1,
@@ -109,7 +123,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"selectionSet":null'
                 . '}]}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},"defaultValue":'
                 . '{"valueType":"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg1' => 1,
@@ -130,7 +144,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"var1"}}],"directiveSet":[],"selectionSet":null}]}],"variableSet":[{"name":"var1","type":{"type":'
                 . '"notnull","inner":{"type":"named","name":"String"}},"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":'
                 . '{"type":"named","name":"String"},"value":"opq"}}],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg5' => 'opq',
@@ -149,7 +163,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"argumentValueSet":[{"argument":"arg1","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"abc"}}],"directiveSet":[],'
                 . '"selectionSet":null}]}],"variableSet":[],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg5' => 'abc',
@@ -170,7 +184,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . ':"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":100},{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":200}]}}],"directiveSet":[],"selectionSet":null'
                 . '}]}],"variableSet":[],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg2' => 100,
@@ -189,7 +203,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"argumentValueSet":[{"argument":"val","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\EnumValue","type":{"type":"named","name":"SimpleEnum"},"value":"B"}}],"directiveSet":[],"selectionSet"'
                 . ':null}]}],"variableSet":[],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg3' => 'B',
@@ -212,7 +226,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . ':999}},"bool":{"argument":"bool","value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":'
                 . '"Boolean"},"value":false}}}}}],"directiveSet":[],"selectionSet":null}]}],"variableSet":[],'
                 . '"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg4' => 999,
@@ -239,7 +253,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":444}},{"name":"var3","type":{"type":"named",'
                 . '"name":"Boolean"},"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},'
                 . '"value":false}}],"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg6' => 'abc',
@@ -259,7 +273,7 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 . '"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"selectionSet":null'
                 . '}]}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},"defaultValue":null}],'
                 . '"directiveSet":[]}]',
-                \Infinityloop\Utils\Json::fromNative((object) [
+                Json::fromNative((object) [
                     'data' => [
                         'field' => [
                             'fieldArg1' => 1,
@@ -271,29 +285,29 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param \Infinityloop\Utils\Json $request
+     * @param Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
      */
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
-        $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
+        $container = new SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
+        $schema = new Schema($container, $this->getQuery());
         $cache = [];
 
-        $graphpinator = new \Graphpinator\Graphpinator(
+        $graphpinator = new Graphpinator(
             $schema,
             false,
-            new \Graphpinator\Module\ModuleSet([
-                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+            new ModuleSet([
+                new PersistedQueriesModule(
                     $schema,
-                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+                    new ArrayCache($cache),
                 ),
             ]),
         );
 
-        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+        $result = $graphpinator->run(new JsonRequestFactory($request));
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
@@ -304,30 +318,30 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param \Infinityloop\Utils\Json $request
+     * @param Json $request
      * @param int $crc32
      * @param string $expectedCache
      * @dataProvider simpleDataProvider
      */
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new \Graphpinator\SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
-        $schema = new \Graphpinator\Typesystem\Schema($container, $this->getQuery());
+        $container = new SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
+        $schema = new Schema($container, $this->getQuery());
         $cache = [];
         $cache[$crc32] = $expectedCache;
 
-        $graphpinator = new \Graphpinator\Graphpinator(
+        $graphpinator = new Graphpinator(
             $schema,
             false,
-            new \Graphpinator\Module\ModuleSet([
-                new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+            new ModuleSet([
+                new PersistedQueriesModule(
                     $schema,
-                    new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+                    new ArrayCache($cache),
                 ),
             ]),
         );
 
-        $result = $graphpinator->run(new \Graphpinator\Request\JsonRequestFactory($request));
+        $result = $graphpinator->run(new JsonRequestFactory($request));
 
         $this->assertArrayHasKey($crc32, $cache);
         $this->assertEquals($expectedCache, $cache[$crc32]);
@@ -337,11 +351,11 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    private function getQuery() : \Graphpinator\Typesystem\Type
+    private function getQuery() : Type
     {
-        return new class ($this->getType()) extends \Graphpinator\Typesystem\Type {
+        return new class ($this->getType()) extends Type {
             public function __construct(
-                private \Graphpinator\Typesystem\Type $type,
+                private Type $type,
             )
             {
                 parent::__construct();
@@ -352,10 +366,10 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'field',
                         $this->type->notNull(),
                         static function () : int {
@@ -367,9 +381,9 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
         };
     }
 
-    private function getType() : \Graphpinator\Typesystem\Type
+    private function getType() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             protected const NAME = 'type';
 
             public function validateNonNullValue(mixed $rawValue) : bool
@@ -377,83 +391,83 @@ final class VariableTest extends \PHPUnit\Framework\TestCase
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'fieldArg',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function (int $parent, int $arg1) : int {
                             return 1;
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::Int())
+                    )->setArguments(new ArgumentSet([
+                        Argument::create('arg1', Container::Int())
                             ->setDefaultValue(123),
                     ])),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'fieldArg1',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function (int $parent, ?int $arg1 = null) : int {
                             return 1;
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::Int())
+                    )->setArguments(new ArgumentSet([
+                        Argument::create('arg1', Container::Int())
                             ->setDefaultValue(null),
                     ])),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'fieldArg2',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function (int $parent, ?array $arg1 = null) : int {
                             return $arg1[0];
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::Int()->list())
+                    )->setArguments(new ArgumentSet([
+                        Argument::create('arg1', Container::Int()->list())
                             ->setDefaultValue(null),
                     ])),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'fieldArg3',
                         VariableTest::getSimpleEnum()->notNull(),
                         static function ($parent, string $val) : string {
                             return $val;
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        new \Graphpinator\Typesystem\Argument\Argument(
+                    )->setArguments(new ArgumentSet([
+                        new Argument(
                             'val',
                             VariableTest::getSimpleEnum()->notNull(),
                         ),
                     ])),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'fieldArg4',
-                        \Graphpinator\Typesystem\Container::Int()->notNull(),
+                        Container::Int()->notNull(),
                         static function ($parent, \stdClass $val) : int {
                             return $val->number;
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        new \Graphpinator\Typesystem\Argument\Argument(
+                    )->setArguments(new ArgumentSet([
+                        new Argument(
                             'val',
                             VariableTest::getSimpleInput()->notNull(),
                         ),
                     ])),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'fieldArg5',
-                        \Graphpinator\Typesystem\Container::String()->notNull(),
+                        Container::String()->notNull(),
                         static function (int $parent, string $arg1) : string {
                             return $arg1;
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::String()->notNull())
+                    )->setArguments(new ArgumentSet([
+                        Argument::create('arg1', Container::String()->notNull())
                             ->setDefaultValue('abc'),
                     ])),
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                    ResolvableField::create(
                         'fieldArg6',
-                        \Graphpinator\Typesystem\Container::String()->notNull(),
+                        Container::String()->notNull(),
                         static function (int $parent, ?string $arg1, ?int $arg2, ?bool $arg3) : string {
                             return 'abc';
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg1', \Graphpinator\Typesystem\Container::String()),
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg2', \Graphpinator\Typesystem\Container::Int()),
-                        \Graphpinator\Typesystem\Argument\Argument::create('arg3', \Graphpinator\Typesystem\Container::Boolean()),
+                    )->setArguments(new ArgumentSet([
+                        Argument::create('arg1', Container::String()),
+                        Argument::create('arg2', Container::Int()),
+                        Argument::create('arg3', Container::Boolean()),
                     ])),
                 ]);
             }

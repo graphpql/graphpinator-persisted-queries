@@ -4,29 +4,51 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries\Tests;
 
-final class ResolverValueTest extends \PHPUnit\Framework\TestCase
+use Graphpinator\Normalizer\Directive\DirectiveSet;
+use Graphpinator\Normalizer\NormalizedRequest;
+use Graphpinator\Normalizer\Operation\Operation;
+use Graphpinator\Normalizer\Operation\OperationSet;
+use Graphpinator\Normalizer\Selection\Field;
+use Graphpinator\Normalizer\Selection\SelectionSet;
+use Graphpinator\Normalizer\Variable\VariableSet;
+use Graphpinator\PersistedQueries\PersistedQueriesModule;
+use Graphpinator\Request\Request;
+use Graphpinator\SimpleContainer;
+use Graphpinator\Typesystem\Argument\Argument;
+use Graphpinator\Typesystem\Argument\ArgumentSet;
+use Graphpinator\Typesystem\Container;
+use Graphpinator\Typesystem\Field\ResolvableField;
+use Graphpinator\Typesystem\Field\ResolvableFieldSet;
+use Graphpinator\Typesystem\Schema;
+use Graphpinator\Typesystem\Type;
+use Graphpinator\Value\ArgumentValue;
+use Graphpinator\Value\ArgumentValueSet;
+use Graphpinator\Value\ScalarValue;
+use PHPUnit\Framework\TestCase;
+
+final class ResolverValueTest extends TestCase
 {
-    public static function getQuery() : \Graphpinator\Typesystem\Type
+    public static function getQuery() : Type
     {
-        return new class extends \Graphpinator\Typesystem\Type {
+        return new class extends Type {
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;
             }
 
-            protected function getFieldDefinition() : \Graphpinator\Typesystem\Field\ResolvableFieldSet
+            protected function getFieldDefinition() : ResolvableFieldSet
             {
-                return new \Graphpinator\Typesystem\Field\ResolvableFieldSet([
-                    \Graphpinator\Typesystem\Field\ResolvableField::create(
+                return new ResolvableFieldSet([
+                    ResolvableField::create(
                         'field',
-                        \Graphpinator\Typesystem\Container::String()->notNull(),
+                        Container::String()->notNull(),
                         static function ($parent) : string {
                             return 'test';
                         },
-                    )->setArguments(new \Graphpinator\Typesystem\Argument\ArgumentSet([
-                        \Graphpinator\Typesystem\Argument\Argument::create(
+                    )->setArguments(new ArgumentSet([
+                        Argument::create(
                             'arg',
-                            \Graphpinator\Typesystem\Container::String()->notNull(),
+                            Container::String()->notNull(),
                         ),
                     ])),
                 ]);
@@ -36,14 +58,14 @@ final class ResolverValueTest extends \PHPUnit\Framework\TestCase
 
     public function testSimple() : void
     {
-        $container = new \Graphpinator\SimpleContainer([self::getQuery()], []);
-        $schema = new \Graphpinator\Typesystem\Schema($container, self::getQuery());
+        $container = new SimpleContainer([self::getQuery()], []);
+        $schema = new Schema($container, self::getQuery());
         $cache = [];
-        $module = new \Graphpinator\PersistedQueries\PersistedQueriesModule(
+        $module = new PersistedQueriesModule(
             $schema,
-            new \Graphpinator\PersistedQueries\Tests\ArrayCache($cache),
+            new ArrayCache($cache),
         );
-        $request = new \Graphpinator\Request\Request('query abc');
+        $request = new Request('query abc');
 
         $module->processRequest($request);
         $module->processNormalized($this->abc());
@@ -59,7 +81,7 @@ final class ResolverValueTest extends \PHPUnit\Framework\TestCase
         );
 
         $result = $module->processRequest($request);
-        $this->assertInstanceOf(\Graphpinator\Normalizer\NormalizedRequest::class, $result);
+        $this->assertInstanceOf(NormalizedRequest::class, $result);
         $argumentValue = $result->getOperations()->getFirst()->getSelections()->getFirst()->getArguments()->getFirst()->getValue();
         $this->assertTrue($argumentValue->hasResolverValue());
         $this->assertInstanceOf(\DateTime::class, $argumentValue->getResolverValue());
@@ -67,36 +89,36 @@ final class ResolverValueTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('abc', $argumentValue->getRawValue());
     }
 
-    public function abc() : \Graphpinator\Normalizer\NormalizedRequest
+    public function abc() : NormalizedRequest
     {
-        $value = new \Graphpinator\Value\ScalarValue(\Graphpinator\Typesystem\Container::String(), 'abc', true);
+        $value = new ScalarValue(Container::String(), 'abc', true);
         $value->setResolverValue(new \DateTime('2021-06-29'));
 
-        return new \Graphpinator\Normalizer\NormalizedRequest(
-            new \Graphpinator\Normalizer\Operation\OperationSet([
-                new \Graphpinator\Normalizer\Operation\Operation(
+        return new NormalizedRequest(
+            new OperationSet([
+                new Operation(
                     'query',
                     null,
                     self::getQuery(),
-                    new \Graphpinator\Normalizer\Selection\SelectionSet([
-                        new \Graphpinator\Normalizer\Selection\Field(
+                    new SelectionSet([
+                        new Field(
                             self::getQuery()->getFields()['field'],
                             'field',
-                            new \Graphpinator\Value\ArgumentValueSet([
-                                new \Graphpinator\Value\ArgumentValue(
-                                    \Graphpinator\Typesystem\Argument\Argument::create(
+                            new ArgumentValueSet([
+                                new ArgumentValue(
+                                    Argument::create(
                                         'arg',
-                                        \Graphpinator\Typesystem\Container::String()->notNull(),
+                                        Container::String()->notNull(),
                                     ),
                                     $value,
                                     false,
                                 ),
                             ]),
-                            new \Graphpinator\Normalizer\Directive\DirectiveSet(),
+                            new DirectiveSet(),
                         ),
                     ]),
-                    new \Graphpinator\Normalizer\Variable\VariableSet(),
-                    new \Graphpinator\Normalizer\Directive\DirectiveSet(),
+                    new VariableSet(),
+                    new DirectiveSet(),
                 ),
             ]),
         );
