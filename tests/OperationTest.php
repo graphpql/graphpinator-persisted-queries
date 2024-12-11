@@ -17,6 +17,7 @@ use Graphpinator\Typesystem\Field\ResolvableFieldSet;
 use Graphpinator\Typesystem\Schema;
 use Graphpinator\Typesystem\Type;
 use Infinityloop\Utils\Json;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class OperationTest extends TestCase
@@ -169,12 +170,7 @@ final class OperationTest extends TestCase
         ];
     }
 
-    /**
-     * @param Json $request
-     * @param int $crc32
-     * @param string $expectedCache
-     * @dataProvider simpleDataProvider
-     */
+    #[DataProvider('simpleDataProvider')]
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new SimpleContainer([$this->getQuery()], []);
@@ -202,12 +198,7 @@ final class OperationTest extends TestCase
         );
     }
 
-    /**
-     * @param Json $request
-     * @param int $crc32
-     * @param string $expectedCache
-     * @dataProvider simpleDataProvider
-     */
+    #[DataProvider('simpleDataProvider')]
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new SimpleContainer([$this->getQuery()], []);

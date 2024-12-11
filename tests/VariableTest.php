@@ -19,6 +19,7 @@ use Graphpinator\Typesystem\InputType;
 use Graphpinator\Typesystem\Schema;
 use Graphpinator\Typesystem\Type;
 use Infinityloop\Utils\Json;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class VariableTest extends TestCase
@@ -284,12 +285,7 @@ final class VariableTest extends TestCase
         ];
     }
 
-    /**
-     * @param Json $request
-     * @param int $crc32
-     * @param string $expectedCache
-     * @dataProvider simpleDataProvider
-     */
+    #[DataProvider('simpleDataProvider')]
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
@@ -317,12 +313,7 @@ final class VariableTest extends TestCase
         );
     }
 
-    /**
-     * @param Json $request
-     * @param int $crc32
-     * @param string $expectedCache
-     * @dataProvider simpleDataProvider
-     */
+    #[DataProvider('simpleDataProvider')]
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
         $container = new SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);

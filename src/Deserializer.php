@@ -18,6 +18,7 @@ use Graphpinator\Normalizer\Variable\Variable;
 use Graphpinator\Normalizer\Variable\VariableSet;
 use Graphpinator\Tokenizer\TokenType;
 use Graphpinator\Typesystem\Argument\ArgumentSet;
+use Graphpinator\Typesystem\Contract\ExecutableDirective;
 use Graphpinator\Typesystem\Contract\Type;
 use Graphpinator\Typesystem\Contract\TypeConditionable;
 use Graphpinator\Typesystem\InputType;
@@ -34,12 +35,10 @@ use Graphpinator\Value\NullInputedValue;
 use Graphpinator\Value\ScalarValue;
 use Graphpinator\Value\VariableValue;
 use Infinityloop\Utils\Json;
-use function PHPUnit\Framework\assertSame;
 
 final class Deserializer
 {
     private \SplStack $typeStack;
-    private ArgumentSet $currentArguments;
     private VariableSet $currentVariableSet;
 
     public function __construct(
@@ -51,12 +50,13 @@ final class Deserializer
 
     public function deserializeNormalizedRequest(string $data) : NormalizedRequest
     {
-        $operationSet = (object) Json::fromString($data)->toNative();
+        $operationSet = Json::fromString($data)->toNative();
+        \assert(\is_array($operationSet));
 
         return new NormalizedRequest($this->deserializeOperationSet($operationSet));
     }
 
-    private function deserializeOperationSet(\stdClass $operationSet) : OperationSet
+    private function deserializeOperationSet(array $operationSet) : OperationSet
     {
         $temp = [];
 
@@ -76,15 +76,15 @@ final class Deserializer
             TokenType::SUBSCRIPTION->value => $this->schema->getSubscription(),
         };
         $this->typeStack->push($rootType);
-        $variables = $this->deserializeVariableSet((object) $operation->variableSet);
+        $variables = $this->deserializeVariableSet($operation->variableSet);
 
         $return = new Operation(
             $operation->type,
             $operation->name,
             $rootType,
-            $this->deserializeSelectionSet((object) $operation->selectionSet),
+            $this->deserializeSelectionSet($operation->selectionSet),
             $variables,
-            $this->deserializeDirectiveSet((object) $operation->directiveSet),
+            $this->deserializeDirectiveSet($operation->directiveSet),
         );
 
         $this->typeStack->pop();
@@ -92,7 +92,7 @@ final class Deserializer
         return $return;
     }
 
-    private function deserializeSelectionSet(\stdClass $selectionSet) : SelectionSet
+    private function deserializeSelectionSet(array $selectionSet) : SelectionSet
     {
         $temp = [];
 
@@ -114,16 +114,15 @@ final class Deserializer
         $fieldDef = $parentType->accept(new GetFieldVisitor($field->fieldName));
 
         $this->typeStack->push($fieldDef->getType()->getNamedType());
-        $this->currentArguments = $fieldDef->getArguments();
 
         $return = new Field(
             $fieldDef,
             $field->alias,
-            $this->deserializeArgumentValueSet((object) $field->argumentValueSet),
-            $this->deserializeDirectiveSet((object) $field->directiveSet),
+            $this->deserializeArgumentValueSet($field->argumentValueSet, $fieldDef->getArguments()),
+            $this->deserializeDirectiveSet($field->directiveSet),
             $field->selectionSet === null
                 ? null
-                : $this->deserializeSelectionSet((object) $field->selectionSet),
+                : $this->deserializeSelectionSet($field->selectionSet),
         );
 
         $this->typeStack->pop();
@@ -140,8 +139,8 @@ final class Deserializer
 
         $return = new FragmentSpread(
             $fragmentSpread->fragmentName,
-            $this->deserializeSelectionSet((object) $fragmentSpread->selectionSet),
-            $this->deserializeDirectiveSet((object) $fragmentSpread->directiveSet),
+            $this->deserializeSelectionSet($fragmentSpread->selectionSet),
+            $this->deserializeDirectiveSet($fragmentSpread->directiveSet),
             $typeCond,
         );
 
@@ -158,8 +157,8 @@ final class Deserializer
         $this->typeStack->push($typeCond);
 
         $return = new InlineFragment(
-            $this->deserializeSelectionSet((object) $inlineSpread->selectionSet),
-            $this->deserializeDirectiveSet((object) $inlineSpread->directiveSet),
+            $this->deserializeSelectionSet($inlineSpread->selectionSet),
+            $this->deserializeDirectiveSet($inlineSpread->directiveSet),
             $typeCond,
         );
 
@@ -168,7 +167,7 @@ final class Deserializer
         return $return;
     }
 
-    private function deserializeDirectiveSet(\stdClass $directiveSet) : DirectiveSet
+    private function deserializeDirectiveSet(array $directiveSet) : DirectiveSet
     {
         $temp = [];
 
@@ -182,28 +181,28 @@ final class Deserializer
     private function deserializeDirective(\stdClass $directive) : Directive
     {
         $directiveDef = $this->schema->getContainer()->getDirective($directive->directive);
-        $this->currentArguments = $directiveDef->getArguments();
+        \assert($directiveDef instanceof ExecutableDirective);
 
         return new Directive(
             $directiveDef,
-            $this->deserializeArgumentValueSet((object) $directive->arguments),
+            $this->deserializeArgumentValueSet($directive->arguments, $directiveDef->getArguments()),
         );
     }
 
-    private function deserializeArgumentValueSet(\stdClass $argumentValueSet) : ArgumentValueSet
+    private function deserializeArgumentValueSet(array $argumentValueSet, ArgumentSet $currentArguments) : ArgumentValueSet
     {
         $temp = [];
 
         foreach ($argumentValueSet as $argumentValue) {
-            $temp[] = $this->deserializeArgumentValue($argumentValue);
+            $temp[] = $this->deserializeArgumentValue($argumentValue, $currentArguments);
         }
 
         return new ArgumentValueSet($temp);
     }
 
-    private function deserializeArgumentValue(\stdClass $argumentValue) : ArgumentValue
+    private function deserializeArgumentValue(\stdClass $argumentValue, ArgumentSet $currentArguments) : ArgumentValue
     {
-        $argument = $this->currentArguments->offsetGet($argumentValue->argument);
+        $argument = $currentArguments->offsetGet($argumentValue->argument);
         $this->typeStack->push($argument->getType());
 
         $return = new ArgumentValue(
@@ -217,7 +216,7 @@ final class Deserializer
         return $return;
     }
 
-    private function deserializeVariableSet(\stdClass $variableSet) : VariableSet
+    private function deserializeVariableSet(array $variableSet) : VariableSet
     {
         $temp = [];
 
@@ -285,14 +284,10 @@ final class Deserializer
         $inner = [];
         $type = $this->deserializeType($inputedValue->type);
         \assert($type instanceof InputType);
-        $currentArgumentsBackup = $this->currentArguments;
-        $this->currentArguments = $type->getArguments();
 
         foreach ($inputedValue->inner as $key => $item) {
-            $inner[$key] = $this->deserializeArgumentValue($item);
+            $inner[$key] = $this->deserializeArgumentValue($item, $type->getArguments());
         }
-
-        $this->currentArguments = $currentArgumentsBackup;
 
         return new InputValue(
             $type,

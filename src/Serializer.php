@@ -109,6 +109,7 @@ final class Serializer
                 Field::class => $this->serializeField($selection),
                 FragmentSpread::class => $this->serializeFragmentSpread($selection),
                 InlineFragment::class => $this->serializeInlineFragment($selection),
+                default => throw new \LogicException('Unknown selection set item: ' . $selection::class),
             };
         }
 
