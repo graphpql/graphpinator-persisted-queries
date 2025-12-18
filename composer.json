@@ -49,8 +49,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Graphpinator\\PersistedQueries\\Tests\\": "tests/",
-      "Graphpinator\\PersistedQueries\\Bench\\": "bench/"
+      "Graphpinator\\PersistedQueries\\Tests\\": "tests/"
     }
   },
   "minimum-stability": "RC",
