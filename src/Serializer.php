@@ -19,13 +19,14 @@ use Graphpinator\Typesystem\Contract\Type;
 use Graphpinator\Typesystem\Contract\TypeConditionable;
 use Graphpinator\Typesystem\ListType;
 use Graphpinator\Typesystem\NotNullType;
+use Graphpinator\Typesystem\Visitor\GetNamedTypeVisitor;
 use Graphpinator\Value\ArgumentValue;
 use Graphpinator\Value\ArgumentValueSet;
 use Graphpinator\Value\EnumValue;
 use Graphpinator\Value\InputValue;
 use Graphpinator\Value\InputedValue;
 use Graphpinator\Value\ListInputedValue;
-use Graphpinator\Value\NullInputedValue;
+use Graphpinator\Value\NullValue;
 use Graphpinator\Value\ScalarValue;
 use Graphpinator\Value\VariableValue;
 use Infinityloop\Utils\Json;
@@ -158,7 +159,7 @@ final class Serializer
         $temp = [];
 
         foreach ($argumentValueSet as $argumentValue) {
-            $temp[] = $this->serializeargumentValue($argumentValue);
+            $temp[] = $this->serializeArgumentValue($argumentValue);
         }
 
         return $temp;
@@ -180,7 +181,7 @@ final class Serializer
         ];
 
         switch ($inputedValue::class) {
-            case NullInputedValue::class:
+            case NullValue::class:
                 break;
             case ScalarValue::class:
                 $data['value'] = $inputedValue->getRawValue();
@@ -238,7 +239,7 @@ final class Serializer
             ],
             default => [
                 'type' => 'named',
-                'name' => $type->getNamedType()->getName(),
+                'name' => $type->accept(new GetNamedTypeVisitor())->getName(),
             ],
         };
     }

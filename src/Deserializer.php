@@ -6,7 +6,6 @@ namespace Graphpinator\PersistedQueries;
 
 use Graphpinator\Normalizer\Directive\Directive;
 use Graphpinator\Normalizer\Directive\DirectiveSet;
-use Graphpinator\Normalizer\GetFieldVisitor;
 use Graphpinator\Normalizer\NormalizedRequest;
 use Graphpinator\Normalizer\Operation\Operation;
 use Graphpinator\Normalizer\Operation\OperationSet;
@@ -16,33 +15,36 @@ use Graphpinator\Normalizer\Selection\InlineFragment;
 use Graphpinator\Normalizer\Selection\SelectionSet;
 use Graphpinator\Normalizer\Variable\Variable;
 use Graphpinator\Normalizer\Variable\VariableSet;
-use Graphpinator\Tokenizer\TokenType;
+use Graphpinator\Normalizer\Visitor\GetFieldVisitor;
+use Graphpinator\Parser\OperationType;
 use Graphpinator\Typesystem\Argument\ArgumentSet;
 use Graphpinator\Typesystem\Contract\ExecutableDirective;
+use Graphpinator\Typesystem\Contract\NamedType;
 use Graphpinator\Typesystem\Contract\Type;
-use Graphpinator\Typesystem\Contract\TypeConditionable;
 use Graphpinator\Typesystem\InputType;
 use Graphpinator\Typesystem\ListType;
 use Graphpinator\Typesystem\NotNullType;
 use Graphpinator\Typesystem\Schema;
+use Graphpinator\Typesystem\Visitor\GetNamedTypeVisitor;
 use Graphpinator\Value\ArgumentValue;
 use Graphpinator\Value\ArgumentValueSet;
 use Graphpinator\Value\EnumValue;
-use Graphpinator\Value\InputValue;
 use Graphpinator\Value\InputedValue;
+use Graphpinator\Value\InputValue;
 use Graphpinator\Value\ListInputedValue;
-use Graphpinator\Value\NullInputedValue;
+use Graphpinator\Value\NullValue;
 use Graphpinator\Value\ScalarValue;
 use Graphpinator\Value\VariableValue;
 use Infinityloop\Utils\Json;
 
 final class Deserializer
 {
+    /** @var \SplStack<NamedType> */
     private \SplStack $typeStack;
     private VariableSet $currentVariableSet;
 
     public function __construct(
-        private Schema $schema,
+        private readonly Schema $schema,
     )
     {
         $this->typeStack = new \SplStack();
@@ -70,16 +72,17 @@ final class Deserializer
 
     private function deserializeOperation(\stdClass $operation) : Operation
     {
-        $rootType = match ($operation->type) {
-            TokenType::QUERY->value => $this->schema->getQuery(),
-            TokenType::MUTATION->value => $this->schema->getMutation(),
-            TokenType::SUBSCRIPTION->value => $this->schema->getSubscription(),
+        $operationType = OperationType::from($operation->type);
+        $rootType = match ($operationType) {
+            OperationType::QUERY => $this->schema->getQuery(),
+            OperationType::MUTATION => $this->schema->getMutation(),
+            OperationType::SUBSCRIPTION => $this->schema->getSubscription(),
         };
         $this->typeStack->push($rootType);
         $variables = $this->deserializeVariableSet($operation->variableSet);
 
         $return = new Operation(
-            $operation->type,
+            $operationType,
             $operation->name,
             $rootType,
             $this->deserializeSelectionSet($operation->selectionSet),
@@ -101,6 +104,7 @@ final class Deserializer
                 Field::class => $this->deserializeField($selection),
                 FragmentSpread::class => $this->deserializeFragmentSpread($selection),
                 InlineFragment::class => $this->deserializeInlineFragment($selection),
+                default => throw new \LogicException($selection->selectionType),
             };
         }
 
@@ -110,10 +114,9 @@ final class Deserializer
     private function deserializeField(\stdClass $field) : Field
     {
         $parentType = $this->typeStack->top();
-        \assert($parentType instanceof Type);
         $fieldDef = $parentType->accept(new GetFieldVisitor($field->fieldName));
 
-        $this->typeStack->push($fieldDef->getType()->getNamedType());
+        $this->typeStack->push($fieldDef->getType()->accept(new GetNamedTypeVisitor()));
 
         $return = new Field(
             $fieldDef,
@@ -133,7 +136,7 @@ final class Deserializer
     private function deserializeFragmentSpread(\stdClass $fragmentSpread) : FragmentSpread
     {
         $typeCond = $this->deserializeType($fragmentSpread->typeCond);
-        \assert($typeCond instanceof TypeConditionable);
+        \assert($typeCond instanceof NamedType);
 
         $this->typeStack->push($typeCond);
 
@@ -152,7 +155,7 @@ final class Deserializer
     private function deserializeInlineFragment(\stdClass $inlineSpread) : InlineFragment
     {
         $typeCond = $this->deserializeType($inlineSpread->typeCond);
-        \assert($typeCond instanceof TypeConditionable);
+        \assert($typeCond instanceof NamedType);
 
         $this->typeStack->push($typeCond);
 
@@ -203,7 +206,7 @@ final class Deserializer
     private function deserializeArgumentValue(\stdClass $argumentValue, ArgumentSet $currentArguments) : ArgumentValue
     {
         $argument = $currentArguments->offsetGet($argumentValue->argument);
-        $this->typeStack->push($argument->getType());
+        $this->typeStack->push($argument->getType()->accept(new GetNamedTypeVisitor()));
 
         $return = new ArgumentValue(
             $argument,
@@ -247,6 +250,7 @@ final class Deserializer
             'named' => $this->schema->getContainer()->getType($type->name),
             'list' => new ListType($this->deserializeType($type->inner)),
             'notnull' => new NotNullType($this->deserializeType($type->inner)),
+            default => throw new \LogicException($type->type),
         };
     }
 
@@ -298,7 +302,7 @@ final class Deserializer
     private function deserializeInputedValue(\stdClass $inputedValue) : InputedValue
     {
         return match ($inputedValue->valueType) {
-            NullInputedValue::class => new NullInputedValue($this->deserializeType($inputedValue->type)),
+            NullValue::class => new NullValue($this->deserializeType($inputedValue->type)),
             ScalarValue::class => $this->deserializeScalarValue($inputedValue),
             EnumValue::class => new EnumValue(
                 $this->deserializeType($inputedValue->type),
@@ -311,6 +315,7 @@ final class Deserializer
             ),
             ListInputedValue::class => $this->deserializeListInputedValue($inputedValue),
             InputValue::class => $this->deserializeInputValue($inputedValue),
+            default => throw new \LogicException($inputedValue->valueType),
         };
     }
 }

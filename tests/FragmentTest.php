@@ -24,6 +24,19 @@ use PHPUnit\Framework\TestCase;
 
 final class FragmentTest extends TestCase
 {
+    private static Type $queryType;
+    private static Type $type;
+    private static Type $flexType;
+    private static InterfaceType $flexSimple;
+
+    public static function setUpBeforeClass() : void
+    {
+        self::$flexSimple = self::getFlexSimple();
+        self::$flexType = self::getFlexType();
+        self::$type = self::getType();
+        self::$queryType = self::getQuery();
+    }
+
     public static function getQuery() : Type
     {
         return new class extends Type {
@@ -155,8 +168,8 @@ final class FragmentTest extends TestCase
             }',
         ]);
 
-        $container = new SimpleContainer([self::getQuery(), self::getType(), self::getFlexSimple(), self::getFlexType()], []);
-        $schema = new Schema($container, self::getQuery());
+        $container = new SimpleContainer([self::$queryType, self::$type, self::$flexSimple, self::$flexType], []);
+        $schema = new Schema($container, self::$queryType);
         $cache = [];
 
         $graphpinator = new Graphpinator(
@@ -180,6 +193,6 @@ final class FragmentTest extends TestCase
             $graphpinator->run(new JsonRequestFactory($request))->toString(),
         );
 
-        $this->assertArrayHasKey(3380607393, $cache);
+        $this->assertArrayHasKey(3_380_607_393, $cache);
     }
 }

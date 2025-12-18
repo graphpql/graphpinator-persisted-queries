@@ -11,6 +11,7 @@ use Graphpinator\Normalizer\Operation\OperationSet;
 use Graphpinator\Normalizer\Selection\Field;
 use Graphpinator\Normalizer\Selection\SelectionSet;
 use Graphpinator\Normalizer\Variable\VariableSet;
+use Graphpinator\Parser\OperationType;
 use Graphpinator\PersistedQueries\PersistedQueriesModule;
 use Graphpinator\Request\Request;
 use Graphpinator\SimpleContainer;
@@ -28,6 +29,13 @@ use PHPUnit\Framework\TestCase;
 
 final class ResolverValueTest extends TestCase
 {
+    private static Type $queryType;
+
+    public static function setUpBeforeClass() : void
+    {
+        self::$queryType = self::getQuery();
+    }
+
     public static function getQuery() : Type
     {
         return new class extends Type {
@@ -58,8 +66,8 @@ final class ResolverValueTest extends TestCase
 
     public function testSimple() : void
     {
-        $container = new SimpleContainer([self::getQuery()], []);
-        $schema = new Schema($container, self::getQuery());
+        $container = new SimpleContainer([self::$queryType], []);
+        $schema = new Schema($container, self::$queryType);
         $cache = [];
         $module = new PersistedQueriesModule(
             $schema,
@@ -70,14 +78,14 @@ final class ResolverValueTest extends TestCase
         $module->processRequest($request);
         $module->processNormalized($this->abc());
 
-        $this->assertArrayHasKey(3834652180, $cache);
+        $this->assertArrayHasKey(3_834_652_180, $cache);
         $this->assertEquals(
             '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
             . '"field","alias":"field","argumentValueSet":[{"argument":"arg"'
             . ',"value":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"String"},"value":"abc","resolverValue":"O:8:'
             . '\"DateTime\":3:{s:4:\"date\";s:26:\"2021-06-29 00:00:00.000000\";s:13:\"timezone_type\";i:3;s:8:\"timezone\";s:3:\"UTC\";}"}}],'
             . '"directiveSet":[],"selectionSet":null}],"variableSet":[],"directiveSet":[]}]',
-            $cache[3834652180],
+            $cache[3_834_652_180],
         );
 
         $result = $module->processRequest($request);
@@ -97,12 +105,12 @@ final class ResolverValueTest extends TestCase
         return new NormalizedRequest(
             new OperationSet([
                 new Operation(
-                    'query',
+                    OperationType::QUERY,
                     null,
-                    self::getQuery(),
+                    self::$queryType,
                     new SelectionSet([
                         new Field(
-                            self::getQuery()->getFields()['field'],
+                            self::$queryType->getFields()['field'],
                             'field',
                             new ArgumentValueSet([
                                 new ArgumentValue(

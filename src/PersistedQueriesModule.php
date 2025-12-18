@@ -9,7 +9,7 @@ use Graphpinator\Normalizer\FinalizedRequest;
 use Graphpinator\Normalizer\NormalizedRequest;
 use Graphpinator\Parser\ParsedRequest;
 use Graphpinator\Request\Request;
-use Graphpinator\Result;
+use Graphpinator\Resolver\Result;
 use Graphpinator\Typesystem\Schema;
 use Psr\SimpleCache\CacheInterface;
 
@@ -25,9 +25,10 @@ class PersistedQueriesModule implements Module
     {
     }
 
+    #[\Override]
     public function processRequest(Request $request) : Request|NormalizedRequest
     {
-        $this->queryHash = (string) \crc32($request->getQuery());
+        $this->queryHash = (string) \crc32($request->query);
 
         $cache = $this->cache->get($this->queryHash);
 
@@ -40,11 +41,13 @@ class PersistedQueriesModule implements Module
         return $request;
     }
 
+    #[\Override]
     public function processParsed(ParsedRequest $request) : ParsedRequest
     {
         return $request;
     }
 
+    #[\Override]
     public function processNormalized(NormalizedRequest $request) : NormalizedRequest
     {
         $serializer = new Serializer();
@@ -54,11 +57,13 @@ class PersistedQueriesModule implements Module
         return $request;
     }
 
+    #[\Override]
     public function processFinalized(FinalizedRequest $request) : FinalizedRequest
     {
         return $request;
     }
 
+    #[\Override]
     public function processResult(Result $result) : Result
     {
         return $result;

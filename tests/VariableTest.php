@@ -24,47 +24,17 @@ use PHPUnit\Framework\TestCase;
 
 final class VariableTest extends TestCase
 {
-    public static function getSimpleEnum() : EnumType
+    public static Type $queryType;
+    public static Type $type;
+    public static InputType $inputType;
+    public static EnumType $enumType;
+
+    public static function setUpBeforeClass() : void
     {
-        return new class extends EnumType
-        {
-            public const A = 'A';
-            public const B = 'B';
-            public const C = 'C';
-            public const D = 'D';
-            protected const NAME = 'SimpleEnum';
-
-            public function __construct()
-            {
-                parent::__construct(self::fromConstants());
-            }
-        };
-    }
-
-    public static function getSimpleInput() : InputType
-    {
-        return new class extends InputType
-        {
-            protected const NAME = 'SimpleInput';
-
-            protected function getFieldDefinition() : ArgumentSet
-            {
-                return new ArgumentSet([
-                    new Argument(
-                        'name',
-                        Container::String()->notNull(),
-                    ),
-                    new Argument(
-                        'number',
-                        Container::Int()->notNull(),
-                    ),
-                    new Argument(
-                        'bool',
-                        Container::Boolean(),
-                    ),
-                ]);
-            }
-        };
+        self::$type = self::getType();
+        self::$inputType = self::getSimpleInput();
+        self::$enumType = self::getSimpleEnum();
+        self::$queryType = self::getQuery();
     }
 
     public static function simpleDataProvider() : array
@@ -74,7 +44,7 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName ($var1: Int = 451) { field { fieldArg(arg1: $var1) } }',
                 ]),
-                2440439348,
+                2_440_439_348,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg",'
@@ -95,7 +65,7 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName ($var1: Int = 451) { field { fieldArg(arg1: $var1) } }',
                 ]),
-                2440439348,
+                2_440_439_348,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg",'
@@ -116,14 +86,14 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName ($var1: Int = null) { field { fieldArg1 } }',
                 ]),
-                1527189668,
+                1_527_189_668,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg1","alias":"fieldArg1",'
                 . '"argumentValueSet":[{"argument":"arg1","value":{"valueType":'
-                . '"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"selectionSet":null'
+                . '"Graphpinator\\\Value\\\NullValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"selectionSet":null'
                 . '}]}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},"defaultValue":'
-                . '{"valueType":"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[]}]',
+                . '{"valueType":"Graphpinator\\\Value\\\NullValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[]}]',
                 Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -136,7 +106,7 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName ($var1: String! = "opq") { field { fieldArg5(arg1: $var1) } }',
                 ]),
-                505400837,
+                505_400_837,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg5","alias":"fieldArg5",'
@@ -157,7 +127,7 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName { field { fieldArg5 } }',
                 ]),
-                2286478500,
+                2_286_478_500,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg5","alias":"fieldArg5",'
@@ -176,7 +146,7 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName { field { fieldArg2(arg1: [100, 200]) } }',
                 ]),
-                465837730,
+                465_837_730,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[]'
                 . ',"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg2","alias":"fieldArg2",'
@@ -197,7 +167,7 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName { field { fieldArg3(val: "B") } }',
                 ]),
-                63963003,
+                63_963_003,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[]'
                 . ',"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg3","alias":"fieldArg3",'
@@ -216,7 +186,7 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName { field { fieldArg4(val: { name: "B", number: 999, bool: false }) } }',
                 ]),
-                4066991757,
+                4_066_991_757,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg4","alias":"fieldArg4",'
@@ -240,7 +210,7 @@ final class VariableTest extends TestCase
                     'query' => 'query queryName ($var1: String = null, $var2: Int = 444, $var3: Boolean = false) { field { fieldArg6(arg1: $var1,'
                         . 'arg2: $var2, arg3: $var3) } }',
                 ]),
-                1051114358,
+                1_051_114_358,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg6","alias":"fieldArg6",'
@@ -249,7 +219,7 @@ final class VariableTest extends TestCase
                 . '"value":{"valueType":"Graphpinator\\\Value\\\VariableValue","type":{"type":"named","name":"Int"},"variableName":"var2"}},'
                 . '{"argument":"arg3","value":{"valueType":"Graphpinator\\\Value\\\VariableValue","type":{"type":"named","name":"Boolean"},'
                 . '"variableName":"var3"}}],"directiveSet":[],"selectionSet":null}]}],"variableSet":[{"name":"var1",'
-                . '"type":{"type":"named","name":"String"},"defaultValue":{"valueType":"Graphpinator\\\Value\\\NullInputedValue","type":{"type":'
+                . '"type":{"type":"named","name":"String"},"defaultValue":{"valueType":"Graphpinator\\\Value\\\NullValue","type":{"type":'
                 . '"named","name":"String"}}},{"name":"var2","type":{"type":"named","name":"Int"},"defaultValue":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":444}},{"name":"var3","type":{"type":"named",'
                 . '"name":"Boolean"},"defaultValue":{"valueType":"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},'
@@ -266,12 +236,12 @@ final class VariableTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName ($var1: Int) { field { fieldArg1 } }',
                 ]),
-                3302446931,
+                3_302_446_931,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg1","alias":"fieldArg1",'
                 . '"argumentValueSet":[{"argument":"arg1","value":{"valueType":'
-                . '"Graphpinator\\\Value\\\NullInputedValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"selectionSet":null'
+                . '"Graphpinator\\\Value\\\NullValue","type":{"type":"named","name":"Int"}}}],"directiveSet":[],"selectionSet":null'
                 . '}]}],"variableSet":[{"name":"var1","type":{"type":"named","name":"Int"},"defaultValue":null}],'
                 . '"directiveSet":[]}]',
                 Json::fromNative((object) [
@@ -288,8 +258,8 @@ final class VariableTest extends TestCase
     #[DataProvider('simpleDataProvider')]
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
-        $schema = new Schema($container, $this->getQuery());
+        $container = new SimpleContainer([self::$queryType, self::$enumType, self::$inputType, self::$type], []);
+        $schema = new Schema($container, self::$queryType);
         $cache = [];
 
         $graphpinator = new Graphpinator(
@@ -316,8 +286,8 @@ final class VariableTest extends TestCase
     #[DataProvider('simpleDataProvider')]
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new SimpleContainer([$this->getQuery(), self::getSimpleEnum(), self::getSimpleInput()], []);
-        $schema = new Schema($container, $this->getQuery());
+        $container = new SimpleContainer([self::$queryType, self::$enumType, self::$inputType, self::$type], []);
+        $schema = new Schema($container, self::$queryType);
         $cache = [];
         $cache[$crc32] = $expectedCache;
 
@@ -342,15 +312,10 @@ final class VariableTest extends TestCase
         );
     }
 
-    private function getQuery() : Type
+    private static function getQuery() : Type
     {
-        return new class ($this->getType()) extends Type {
-            public function __construct(
-                private Type $type,
-            )
-            {
-                parent::__construct();
-            }
+        return new class () extends Type {
+            protected const NAME = 'Query';
 
             public function validateNonNullValue(mixed $rawValue) : bool
             {
@@ -362,7 +327,7 @@ final class VariableTest extends TestCase
                 return new ResolvableFieldSet([
                     ResolvableField::create(
                         'field',
-                        $this->type->notNull(),
+                        VariableTest::$type->notNull(),
                         static function () : int {
                             return 1;
                         },
@@ -372,10 +337,10 @@ final class VariableTest extends TestCase
         };
     }
 
-    private function getType() : Type
+    private static function getType() : Type
     {
         return new class extends Type {
-            protected const NAME = 'type';
+            protected const NAME = 'Type';
 
             public function validateNonNullValue(mixed $rawValue) : bool
             {
@@ -417,14 +382,14 @@ final class VariableTest extends TestCase
                     ])),
                     ResolvableField::create(
                         'fieldArg3',
-                        VariableTest::getSimpleEnum()->notNull(),
+                        VariableTest::$enumType->notNull(),
                         static function ($parent, string $val) : string {
                             return $val;
                         },
                     )->setArguments(new ArgumentSet([
                         new Argument(
                             'val',
-                            VariableTest::getSimpleEnum()->notNull(),
+                            VariableTest::$enumType->notNull(),
                         ),
                     ])),
                     ResolvableField::create(
@@ -436,7 +401,7 @@ final class VariableTest extends TestCase
                     )->setArguments(new ArgumentSet([
                         new Argument(
                             'val',
-                            VariableTest::getSimpleInput()->notNull(),
+                            VariableTest::$inputType->notNull(),
                         ),
                     ])),
                     ResolvableField::create(
@@ -460,6 +425,49 @@ final class VariableTest extends TestCase
                         Argument::create('arg2', Container::Int()),
                         Argument::create('arg3', Container::Boolean()),
                     ])),
+                ]);
+            }
+        };
+    }
+
+    private static function getSimpleEnum() : EnumType
+    {
+        return new class extends EnumType
+        {
+            public const A = 'A';
+            public const B = 'B';
+            public const C = 'C';
+            public const D = 'D';
+            protected const NAME = 'SimpleEnum';
+
+            public function __construct()
+            {
+                parent::__construct(self::fromConstants());
+            }
+        };
+    }
+
+    private static function getSimpleInput() : InputType
+    {
+        return new class extends InputType
+        {
+            protected const NAME = 'SimpleInput';
+
+            protected function getFieldDefinition() : ArgumentSet
+            {
+                return new ArgumentSet([
+                    new Argument(
+                        'name',
+                        Container::String()->notNull(),
+                    ),
+                    new Argument(
+                        'number',
+                        Container::Int()->notNull(),
+                    ),
+                    new Argument(
+                        'bool',
+                        Container::Boolean(),
+                    ),
                 ]);
             }
         };

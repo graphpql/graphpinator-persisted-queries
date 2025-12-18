@@ -22,9 +22,26 @@ use PHPUnit\Framework\TestCase;
 
 final class OperationTest extends TestCase
 {
+    public static Type $type;
+    private static Type $queryType;
+    private static Type $type2;
+    private static Type $mutationType;
+    private static Type $subscriptionType;
+
+    public static function setUpBeforeClass() : void
+    {
+        self::$type = self::getType();
+        self::$type2 = self::getType2();
+        self::$mutationType = self::getMutation();
+        self::$subscriptionType = self::getSubscription();
+        self::$queryType = self::getQuery();
+    }
+
     public static function getType2() : Type
     {
         return new class extends Type {
+            protected const NAME = 'Type2';
+
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;
@@ -48,6 +65,8 @@ final class OperationTest extends TestCase
     public static function getType() : Type
     {
         return new class extends Type {
+            protected const NAME = 'Type';
+
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;
@@ -92,7 +111,7 @@ final class OperationTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName { field { scalar } } query queryName2 { field { fieldArg } }',
                 ]),
-                1485165402,
+                1_485_165_402,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName"'
                 . ':"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar",'
@@ -109,7 +128,7 @@ final class OperationTest extends TestCase
                 Json::fromNative((object) [
                     'query' => 'query queryName { field { scalar } } query queryName2 { field2 { field { fieldArg } } }',
                 ]),
-                1589897943,
+                1_589_897_943,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
                 . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":'
@@ -129,7 +148,7 @@ final class OperationTest extends TestCase
                     'query' => 'query queryName { field { scalar } } mutation mutationName { mutationField, secondField: mutationField, '
                         . 'thirdField: mutationField }',
                 ]),
-                2364436310,
+                2_364_436_310,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
                 . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar",'
@@ -149,7 +168,7 @@ final class OperationTest extends TestCase
                     'query' => 'query queryName { field { scalar } } mutation mutationName { mutationField, secondField:'
                         . 'mutationField, thirdField: mutationField } subscription subscriptionName { subscriptionField }',
                 ]),
-                1309780448,
+                1_309_780_448,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"scalar","alias":"scalar",'
@@ -173,8 +192,8 @@ final class OperationTest extends TestCase
     #[DataProvider('simpleDataProvider')]
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new SimpleContainer([$this->getQuery()], []);
-        $schema = new Schema($container, $this->getQuery(), $this->getMutation(), $this->getSubscription());
+        $container = new SimpleContainer([self::$queryType, self::$type, self::$type2, self::$mutationType, self::$subscriptionType], []);
+        $schema = new Schema($container, self::$queryType, self::$mutationType, self::$subscriptionType);
         $cache = [];
 
         $graphpinator = new Graphpinator(
@@ -201,8 +220,8 @@ final class OperationTest extends TestCase
     #[DataProvider('simpleDataProvider')]
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new SimpleContainer([$this->getQuery()], []);
-        $schema = new Schema($container, $this->getQuery(), $this->getMutation(), $this->getSubscription());
+        $container = new SimpleContainer([self::$queryType, self::$type, self::$type2, self::$mutationType, self::$subscriptionType], []);
+        $schema = new Schema($container, self::$queryType, self::$mutationType, self::$subscriptionType);
         $cache = [];
         $cache[$crc32] = $expectedCache;
 
@@ -227,9 +246,11 @@ final class OperationTest extends TestCase
         );
     }
 
-    public function getMutation() : Type
+    public static function getMutation() : Type
     {
         return new class extends Type {
+            protected const NAME = 'Mutation';
+
             private int $order = 0;
 
             public function validateNonNullValue(mixed $rawValue) : bool
@@ -255,9 +276,11 @@ final class OperationTest extends TestCase
         };
     }
 
-    public function getSubscription() : Type
+    public static function getSubscription() : Type
     {
         return new class extends Type {
+            protected const NAME = 'Subscription';
+
             public function validateNonNullValue(mixed $rawValue) : bool
             {
                 return true;
@@ -278,15 +301,10 @@ final class OperationTest extends TestCase
         };
     }
 
-    private function getQuery() : Type
+    private static function getQuery() : Type
     {
-        return new class ($this->getType()) extends Type {
-            public function __construct(
-                private Type $type,
-            )
-            {
-                parent::__construct();
-            }
+        return new class extends Type {
+            protected const NAME = 'Query';
 
             public function validateNonNullValue(mixed $rawValue) : bool
             {
@@ -298,7 +316,7 @@ final class OperationTest extends TestCase
                 return new ResolvableFieldSet([
                     ResolvableField::create(
                         'field',
-                        $this->type->notNull(),
+                        OperationTest::$type->notNull(),
                         static function () : int {
                             return 321;
                         },

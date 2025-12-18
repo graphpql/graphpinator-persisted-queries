@@ -22,6 +22,15 @@ use PHPUnit\Framework\TestCase;
 
 final class SimpleTest extends TestCase
 {
+    public static Type $type;
+    private static Type $queryType;
+
+    public static function setUpBeforeClass() : void
+    {
+        self::$type = self::getType();
+        self::$queryType = self::getQuery();
+    }
+
     public static function simpleDataProvider() : array
     {
         return [
@@ -29,7 +38,7 @@ final class SimpleTest extends TestCase
                 Json::fromNative((object) [
                     'query' => '{ field { field { field { scalar } } } }',
                 ]),
-                1920335920,
+                1_920_335_920,
                 '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"field","alias":"field",'
@@ -44,7 +53,7 @@ final class SimpleTest extends TestCase
                 Json::fromNative((object) [
                     'query' => '{ field { fieldArg(arg1: 456) } }',
                 ]),
-                2503903000,
+                2_503_903_000,
                 '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg",'
@@ -63,7 +72,7 @@ final class SimpleTest extends TestCase
                 Json::fromNative((object) [
                     'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: false) } }',
                 ]),
-                4262924343,
+                4_262_924_343,
                 '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
                 . '"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":'
@@ -73,7 +82,6 @@ final class SimpleTest extends TestCase
                 . ',"name":"Boolean"},"value":true}}]},{"directive":"skip","arguments":[{"argument":"if","value":{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Boolean"},"value":false}}]}],"selectionSet":null'
                 . '}]}],"variableSet":[],"directiveSet":[]}]',
-
                 Json::fromNative((object) [
                     'data' => [
                         'field' => [
@@ -86,7 +94,7 @@ final class SimpleTest extends TestCase
                 Json::fromNative((object) [
                     'query' => '{ field { fieldArg(arg1: 456) @include(if: true) @skip(if: true) } }',
                 ]),
-                84548630,
+                84_548_630,
                 '[{"type":"query","name":null,"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":'
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[],"selectionSet":'
                 . '[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg","alias":"fieldArg",'
@@ -107,7 +115,7 @@ final class SimpleTest extends TestCase
                     'query' => 'query queryName { ... namedFragment }
                     fragment namedFragment on Query { field { field { field { scalar } } } }',
                 ]),
-                1205484868,
+                1_205_484_868,
                 '[{"type":"query","name":"queryName","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\FragmentSpread",'
                 . '"fragmentName":"namedFragment","selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field",'
                 . '"fieldName":"field","alias":"field","argumentValueSet":[],"directiveSet":[],'
@@ -125,8 +133,8 @@ final class SimpleTest extends TestCase
     #[DataProvider('simpleDataProvider')]
     public function testSimple(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new SimpleContainer([$this->getQuery(), $this->getType()], []);
-        $schema = new Schema($container, $this->getQuery());
+        $container = new SimpleContainer([self::$queryType, self::$type], []);
+        $schema = new Schema($container, self::$queryType);
         $cache = [];
 
         $graphpinator = new Graphpinator(
@@ -154,8 +162,8 @@ final class SimpleTest extends TestCase
     #[DataProvider('simpleDataProvider')]
     public function testSimpleTtl(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new SimpleContainer([$this->getQuery(), $this->getType()], []);
-        $schema = new Schema($container, $this->getQuery());
+        $container = new SimpleContainer([self::$queryType, self::$type], []);
+        $schema = new Schema($container, self::$queryType);
         $cache = [];
 
         $graphpinator = new Graphpinator(
@@ -184,8 +192,8 @@ final class SimpleTest extends TestCase
     #[DataProvider('simpleDataProvider')]
     public function testSimpleCache(Json $request, int $crc32, string $expectedCache, Json $expectedResult) : void
     {
-        $container = new SimpleContainer([$this->getQuery(), $this->getType()], []);
-        $schema = new Schema($container, $this->getQuery());
+        $container = new SimpleContainer([self::$queryType, self::$type], []);
+        $schema = new Schema($container, self::$queryType);
         $cache = [];
         $cache[$crc32] = $expectedCache;
 
@@ -210,17 +218,10 @@ final class SimpleTest extends TestCase
         );
     }
 
-    private function getQuery() : Type
+    private static function getQuery() : Type
     {
-        return new class ($this->getType()) extends Type {
+        return new class extends Type {
             protected const NAME = 'Query';
-
-            public function __construct(
-                private Type $type,
-            )
-            {
-                parent::__construct();
-            }
 
             public function validateNonNullValue(mixed $rawValue) : bool
             {
@@ -232,7 +233,7 @@ final class SimpleTest extends TestCase
                 return new ResolvableFieldSet([
                     ResolvableField::create(
                         'field',
-                        $this->type->notNull(),
+                        SimpleTest::$type->notNull(),
                         static function () : int {
                             return 1;
                         },
@@ -242,7 +243,7 @@ final class SimpleTest extends TestCase
         };
     }
 
-    private function getType() : Type
+    private static function getType() : Type
     {
         return new class extends Type {
             protected const NAME = 'Type1';

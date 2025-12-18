@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Graphpinator\PersistedQueries\Bench;
 
-class RedisCache implements \Psr\SimpleCache\CacheInterface {
+use Psr\SimpleCache\CacheInterface;
+
+class RedisCache implements CacheInterface {
 
     protected \Redis $redis;
 
