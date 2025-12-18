@@ -53,7 +53,7 @@
       "Graphpinator\\PersistedQueries\\Bench\\": "bench/"
     }
   },
-  "minimum-stability": "rc",
+  "minimum-stability": "RC",
   "config": {
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true,
