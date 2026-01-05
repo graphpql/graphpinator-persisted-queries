@@ -151,7 +151,7 @@ final class VariableTest extends TestCase
                 . '"field","alias":"field","argumentValueSet":[],"directiveSet":[]'
                 . ',"selectionSet":[{"selectionType":"Graphpinator\\\Normalizer\\\Selection\\\Field","fieldName":"fieldArg2","alias":"fieldArg2",'
                 . '"argumentValueSet":[{"argument":"arg1","value":{"valueType":'
-                . '"Graphpinator\\\Value\\\ListInputedValue","type":{"type":"list","inner":{"type":"named","name":"Int"}},"inner":[{"valueType"'
+                . '"Graphpinator\\\Value\\\ListValue","type":{"type":"list","inner":{"type":"named","name":"Int"}},"inner":[{"valueType"'
                 . ':"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":100},{"valueType":'
                 . '"Graphpinator\\\Value\\\ScalarValue","type":{"type":"named","name":"Int"},"value":200}]}}],"directiveSet":[],"selectionSet":null'
                 . '}]}],"variableSet":[],"directiveSet":[]}]',

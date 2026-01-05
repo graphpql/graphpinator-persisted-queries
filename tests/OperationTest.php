@@ -53,7 +53,7 @@ final class OperationTest extends TestCase
                     ResolvableField::create(
                         'field',
                         OperationTest::getType(),
-                        static function () : int {
+                        static function () : ?int {
                             return 123;
                         },
                     ),
@@ -78,7 +78,7 @@ final class OperationTest extends TestCase
                     ResolvableField::create(
                         'field',
                         $this,
-                        static function () : int {
+                        static function () : ?int {
                             return 123;
                         },
                     ),
@@ -324,7 +324,7 @@ final class OperationTest extends TestCase
                     ResolvableField::create(
                         'field2',
                         OperationTest::getType2(),
-                        static function () : int {
+                        static function () : ?int {
                             return 321;
                         },
                     ),

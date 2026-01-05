@@ -28,10 +28,10 @@ use Graphpinator\Typesystem\Schema;
 use Graphpinator\Typesystem\Visitor\GetNamedTypeVisitor;
 use Graphpinator\Value\ArgumentValue;
 use Graphpinator\Value\ArgumentValueSet;
+use Graphpinator\Value\Contract\InputedValue;
 use Graphpinator\Value\EnumValue;
 use Graphpinator\Value\InputValue;
-use Graphpinator\Value\InputedValue;
-use Graphpinator\Value\ListInputedValue;
+use Graphpinator\Value\ListValue;
 use Graphpinator\Value\NullValue;
 use Graphpinator\Value\ScalarValue;
 use Graphpinator\Value\VariableValue;
@@ -269,7 +269,7 @@ final class Deserializer
         return $scalarValue;
     }
 
-    private function deserializeListInputedValue(\stdClass $inputedValue) : ListInputedValue
+    private function deserializeListInputedValue(\stdClass $inputedValue) : ListValue
     {
         $inner = [];
 
@@ -277,7 +277,7 @@ final class Deserializer
             $inner[] = $this->deserializeInputedValue($item);
         }
 
-        return new ListInputedValue(
+        return new ListValue(
             $this->deserializeType($inputedValue->type),
             $inner,
         );
@@ -313,7 +313,7 @@ final class Deserializer
                 $this->deserializeType($inputedValue->type),
                 $this->currentVariableSet->offsetGet($inputedValue->variableName),
             ),
-            ListInputedValue::class => $this->deserializeListInputedValue($inputedValue),
+            ListValue::class => $this->deserializeListInputedValue($inputedValue),
             InputValue::class => $this->deserializeInputValue($inputedValue),
             default => throw new \LogicException($inputedValue->valueType),
         };

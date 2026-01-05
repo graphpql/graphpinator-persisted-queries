@@ -22,10 +22,10 @@ use Graphpinator\Typesystem\NotNullType;
 use Graphpinator\Typesystem\Visitor\GetNamedTypeVisitor;
 use Graphpinator\Value\ArgumentValue;
 use Graphpinator\Value\ArgumentValueSet;
+use Graphpinator\Value\Contract\InputedValue;
 use Graphpinator\Value\EnumValue;
 use Graphpinator\Value\InputValue;
-use Graphpinator\Value\InputedValue;
-use Graphpinator\Value\ListInputedValue;
+use Graphpinator\Value\ListValue;
 use Graphpinator\Value\NullValue;
 use Graphpinator\Value\ScalarValue;
 use Graphpinator\Value\VariableValue;
@@ -35,7 +35,7 @@ final class Serializer
 {
     public function serializeNormalizedRequest(NormalizedRequest $normalizedRequest) : string
     {
-        return Json::fromNative($this->serializeOperationSet($normalizedRequest->getOperations()))->toString();
+        return Json::fromNative($this->serializeOperationSet($normalizedRequest->operations))->toString();
     }
 
     private function serializeOperationSet(OperationSet $operationSet) : array
@@ -52,11 +52,11 @@ final class Serializer
     private function serializeOperation(Operation $operation) : array
     {
         return [
-            'type' => $operation->getType(),
-            'name' => $operation->getName(),
-            'selectionSet' => $this->serializeSelectionSet($operation->getSelections()),
-            'variableSet' => $this->serializeVariableSet($operation->getVariables()),
-            'directiveSet' => $this->serializeDirectiveSet($operation->getDirectives()),
+            'type' => $operation->type,
+            'name' => $operation->name,
+            'selectionSet' => $this->serializeSelectionSet($operation->children),
+            'variableSet' => $this->serializeVariableSet($operation->variables),
+            'directiveSet' => $this->serializeDirectiveSet($operation->directives),
         ];
     }
 
@@ -74,8 +74,8 @@ final class Serializer
     private function serializeDirective(Directive $directive) : array
     {
         return [
-            'directive' => $directive->getDirective()->getName(),
-            'arguments' => $this->serializeArgumentValueSet($directive->getArguments()),
+            'directive' => $directive->directive->getName(),
+            'arguments' => $this->serializeArgumentValueSet($directive->arguments),
         ];
     }
 
@@ -93,11 +93,11 @@ final class Serializer
     private function serializeVariable(Variable $variable) : array
     {
         return [
-            'name' => $variable->getName(),
-            'type' => $this->serializeType($variable->getType()),
-            'defaultValue' => $variable->getDefaultValue() === null
+            'name' => $variable->name,
+            'type' => $this->serializeType($variable->type),
+            'defaultValue' => $variable->defaultValue === null
                 ? null
-                : $this->serializeInputedValue($variable->getDefaultValue()),
+                : $this->serializeInputedValue($variable->defaultValue),
         ];
     }
 
@@ -121,13 +121,13 @@ final class Serializer
     {
         return [
             'selectionType' => Field::class,
-            'fieldName' => $field->getField()->getName(),
-            'alias' => $field->getOutputName(),
-            'argumentValueSet' => $this->serializeArgumentValueSet($field->getArguments()),
-            'directiveSet' => $this->serializeDirectiveSet($field->getDirectives()),
-            'selectionSet' => $field->getSelections() === null
+            'fieldName' => $field->field->getName(),
+            'alias' => $field->outputName,
+            'argumentValueSet' => $this->serializeArgumentValueSet($field->arguments),
+            'directiveSet' => $this->serializeDirectiveSet($field->directives),
+            'selectionSet' => $field->children === null
                 ? null
-                : $this->serializeSelectionSet($field->getSelections()),
+                : $this->serializeSelectionSet($field->children),
         ];
     }
 
@@ -135,10 +135,10 @@ final class Serializer
     {
         return [
             'selectionType' => FragmentSpread::class,
-            'fragmentName' => $fragmentSpread->getName(),
-            'selectionSet' => $this->serializeSelectionSet($fragmentSpread->getSelections()),
-            'directiveSet' => $this->serializeDirectiveSet($fragmentSpread->getDirectives()),
-            'typeCond' => $this->serializeType($fragmentSpread->getTypeCondition()),
+            'fragmentName' => $fragmentSpread->name,
+            'selectionSet' => $this->serializeSelectionSet($fragmentSpread->children),
+            'directiveSet' => $this->serializeDirectiveSet($fragmentSpread->directives),
+            'typeCond' => $this->serializeType($fragmentSpread->typeCondition),
         ];
     }
 
@@ -146,10 +146,10 @@ final class Serializer
     {
         return [
             'selectionType' => InlineFragment::class,
-            'selectionSet' => $this->serializeSelectionSet($inlineFragment->getSelections()),
-            'directiveSet' => $this->serializeDirectiveSet($inlineFragment->getDirectives()),
-            'typeCond' => $inlineFragment->getTypeCondition() instanceof TypeConditionable
-                ? $this->serializeType($inlineFragment->getTypeCondition())
+            'selectionSet' => $this->serializeSelectionSet($inlineFragment->children),
+            'directiveSet' => $this->serializeDirectiveSet($inlineFragment->directives),
+            'typeCond' => $inlineFragment->typeCondition instanceof TypeConditionable
+                ? $this->serializeType($inlineFragment->typeCondition)
                 : null,
         ];
     }
@@ -168,8 +168,8 @@ final class Serializer
     private function serializeArgumentValue(ArgumentValue $argumentValue) : array
     {
         return [
-            'argument' => $argumentValue->getArgument()->getName(),
-            'value' => $this->serializeInputedValue($argumentValue->getValue()),
+            'argument' => $argumentValue->argument->getName(),
+            'value' => $this->serializeInputedValue($argumentValue->value),
         ];
     }
 
@@ -196,14 +196,13 @@ final class Serializer
 
                 break;
             case VariableValue::class:
-                $data['variableName'] = $inputedValue->getVariable()->getName();
+                $data['variableName'] = $inputedValue->variable->name;
 
                 break;
-            case ListInputedValue::class:
+            case ListValue::class:
                 $inner = [];
 
                 foreach ($inputedValue as $item) {
-                    \assert($item instanceof InputedValue);
                     $inner[] = $this->serializeInputedValue($item);
                 }
 
@@ -214,7 +213,6 @@ final class Serializer
                 $inner = [];
 
                 foreach ($inputedValue as $key => $item) {
-                    \assert($item instanceof ArgumentValue);
                     $inner[$key] = $this->serializeArgumentValue($item);
                 }
 

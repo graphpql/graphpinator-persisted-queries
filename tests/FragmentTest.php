@@ -53,7 +53,7 @@ final class FragmentTest extends TestCase
                     ResolvableField::create(
                         'field',
                         FragmentTest::getType(),
-                        static function () : int {
+                        static function () : ?int {
                             return 1;
                         },
                     ),
@@ -85,7 +85,7 @@ final class FragmentTest extends TestCase
                     ResolvableField::create(
                         'flex',
                         FragmentTest::getFlexSimple(),
-                        static function () : int {
+                        static function () : ?int {
                             return 1;
                         },
                     ),
@@ -138,14 +138,14 @@ final class FragmentTest extends TestCase
                     ResolvableField::create(
                         'mandatory',
                         Container::Int(),
-                        static function () : int {
+                        static function () : ?int {
                             return 123;
                         },
                     ),
                     ResolvableField::create(
                         'specific',
                         Container::String(),
-                        static function () : string {
+                        static function () : ?string {
                             return 'flexTypeResult';
                         },
                     ),

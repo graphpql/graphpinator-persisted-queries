@@ -90,7 +90,7 @@ final class ResolverValueTest extends TestCase
 
         $result = $module->processRequest($request);
         $this->assertInstanceOf(NormalizedRequest::class, $result);
-        $argumentValue = $result->getOperations()->getFirst()->getSelections()->getFirst()->getArguments()->getFirst()->getValue();
+        $argumentValue = $result->operations->getFirst()->children->getFirst()->arguments->getFirst()->value;
         $this->assertTrue($argumentValue->hasResolverValue());
         $this->assertInstanceOf(\DateTime::class, $argumentValue->getResolverValue());
         $this->assertEquals(new \DateTime('2021-06-29'), $argumentValue->getResolverValue());

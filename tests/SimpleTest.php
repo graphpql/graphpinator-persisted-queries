@@ -259,7 +259,7 @@ final class SimpleTest extends TestCase
                     ResolvableField::create(
                         'field',
                         $this,
-                        static function () : int {
+                        static function () : ?int {
                             return 1;
                         },
                     ),
