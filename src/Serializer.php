@@ -184,7 +184,7 @@ final class Serializer
             case NullValue::class:
                 break;
             case ScalarValue::class:
-                $data['value'] = $inputedValue->getRawValue();
+                $data['value'] = $inputedValue->jsonSerialize();
 
                 if ($inputedValue->hasResolverValue()) {
                     $data['resolverValue'] = \serialize($inputedValue->getResolverValue());

@@ -259,7 +259,7 @@ final class Deserializer
         $scalarValue = new ScalarValue(
             $this->deserializeType($inputedValue->type),
             $inputedValue->value,
-            false,
+            true,
         );
 
         if (isset($inputedValue->resolverValue)) {
